@@ -14,10 +14,27 @@ FPS = 60
 MAX_DT = 0.05
 BG_COLOR = (10, 10, 20)
 
+FONT_SMALL = 24
+FONT_MEDIUM = 32
+FONT_LARGE = 56
+TEXT_COLOR = (235, 235, 245)
+TEXT_DIM_COLOR = (140, 140, 165)
+WARNING_COLOR = (255, 90, 90)
+ACCENT_COLOR = (255, 200, 60)
+
 MOVE_ORDER = ("U", "R", "D", "L")
 SAFE_RADIUS = 3
 MAX_GHOSTS = 4
 MAX_PELLETS = 8
+
+DANGER_RADIUS = 2
+DANGER_PENALTY = 5
+
+DIFFICULTIES = {
+    "Easy": {"replan": False, "preview": True, "block_limit": 12},
+    "Medium": {"replan": False, "preview": False, "block_limit": 16},
+    "Hard": {"replan": True, "preview": False, "block_limit": 20},
+}
 
 TICK_CAP_FACTOR = 2
 TICK_CAP_BONUS = 10
