@@ -1,6 +1,5 @@
-import random
 from collections import deque
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from functools import cached_property
 from pathlib import Path
 
@@ -116,82 +115,5 @@ def validate_level(level: Level):
 def load_level(path: Path) -> Level:
     path = Path(path)
     level = parse_level(path.read_text(), path.stem)
-    validate_level(level)
-    return level
-
-
-def _carve_maze(width: int, height: int, rng: random.Random) -> set:
-    cells = {(x, y) for x in range(1, width - 1, 2) for y in range(1, height - 1, 2)}
-    floor = {(1, 1)}
-    stack = [(1, 1)]
-    while stack:
-        x, y = stack[-1]
-        options = [
-            (dx, dy) for dx, dy in DIRECTIONS.values()
-            if (x + 2 * dx, y + 2 * dy) in cells and (x + 2 * dx, y + 2 * dy) not in floor
-        ]
-        if not options:
-            stack.pop()
-            continue
-        dx, dy = rng.choice(options)
-        floor |= {(x + dx, y + dy), (x + 2 * dx, y + 2 * dy)}
-        stack.append((x + 2 * dx, y + 2 * dy))
-    for x, y in sorted(cells):
-        open_sides = [(dx, dy) for dx, dy in DIRECTIONS.values() if (x + dx, y + dy) in floor]
-        if len(open_sides) != 1 or rng.random() >= settings.BRAID_CHANCE:
-            continue
-        closed_sides = [
-            (dx, dy) for dx, dy in DIRECTIONS.values()
-            if (x + dx, y + dy) not in floor and (x + 2 * dx, y + 2 * dy) in cells
-        ]
-        if closed_sides:
-            dx, dy = rng.choice(closed_sides)
-            floor.add((x + dx, y + dy))
-    return floor
-
-
-def _farthest(distances: dict) -> tuple:
-    return max(distances, key=distances.get)
-
-
-def _route_tiles(level: Level, stops: tuple) -> set:
-    tiles = set()
-    for a, b in zip(stops, stops[1:]):
-        dist_a = bfs_dist(level, a)
-        dist_b = bfs_dist(level, b)
-        tiles |= {tile for tile in dist_a if dist_a[tile] + dist_b.get(tile, dist_a[b] + 1) == dist_a[b]}
-    return tiles
-
-
-def _pick_ghosts(level: Level, count: int, rng: random.Random) -> tuple:
-    dist_start = bfs_dist(level, level.start)
-    excluded = _route_tiles(level, (level.start, level.goal)) | level.safe_zone | level.pellets
-    candidates = [
-        tile for tile in sorted(level.floor_tiles)
-        if tile not in excluded and dist_start[tile] >= settings.GHOST_MIN_START_DISTANCE
-    ]
-    rng.shuffle(candidates)
-    for spacing in settings.GHOST_SPACINGS:
-        chosen = []
-        for tile in candidates:
-            if all(manhattan(tile, other) >= spacing for other in chosen):
-                chosen.append(tile)
-            if len(chosen) == count:
-                return tuple(chosen)
-    raise LevelError(f"{level.name}: not enough tiles for {count} ghost spawns")
-
-
-def generate_level(width: int, height: int, seed: int, pellet_count: int, ghost_count: int = settings.MAX_GHOSTS) -> Level:
-    rng = random.Random(seed)
-    floor = _carve_maze(width, height, rng)
-    walls = frozenset((x, y) for y in range(height) for x in range(width) if (x, y) not in floor)
-    corner = (1, 1)
-    level = Level(f"random {width}x{height} #{seed}", width, height, walls, corner, corner, (), frozenset())
-    goal = _farthest(bfs_dist(level, corner))
-    start = _farthest(bfs_dist(level, goal))
-    level = replace(level, start=start, goal=goal)
-    pellet_spots = sorted(level.floor_tiles - level.safe_zone - {start})
-    level = replace(level, pellets=frozenset(rng.sample(pellet_spots, pellet_count)))
-    level = replace(level, ghosts=_pick_ghosts(level, ghost_count, rng))
     validate_level(level)
     return level
