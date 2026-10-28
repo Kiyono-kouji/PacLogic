@@ -1,7 +1,7 @@
 import pygame
 
 from src.core import settings
-from src.core.resource_loader import load_font
+from src.core.resource_loader import load_font, load_sprite
 from src.logic.grid import Level
 from src.ui.component import Component
 
@@ -56,9 +56,9 @@ class MapView(Component):
         surface.blit(self.background, self.rect)
         for tile in route:
             surface.blit(self.route_tile, self.tile_topleft(tile))
-        radius = max(1, int(self.tile * settings.PELLET_RADIUS))
+        sprite = load_sprite("items/pellet/pellet.png", self.tile)
         for pellet in pellets:
-            pygame.draw.circle(surface, settings.PELLET_COLOR, self.tile_center(pellet), radius)
+            surface.blit(sprite, sprite.get_rect(center=self.tile_center(pellet)))
 
     def cost_font(self, costs) -> pygame.font.Font | None:
         widest = max((str(value) for _, g, h in costs for value in (g, h)), key=len)

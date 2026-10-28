@@ -26,5 +26,8 @@ class Character:
         else:
             self.position = (tile[0] * self.tile_size, tile[1] * self.tile_size)
 
+    def center(self) -> tuple[int, int]:
+        return self.position[0] + self.tile_size // 2, self.position[1] + self.tile_size // 2
+
     def draw(self, surface: pygame.Surface):
         raise NotImplementedError
