@@ -3,7 +3,7 @@ import pygame
 from src.core import settings
 from src.logic import blocks
 from src.logic.sim import RUNNING
-from src.scenes import menu_scene
+from src.scenes import menu_scene, result_scene
 from src.scenes.base_scene import BaseScene
 from src.ui.board import Board
 from src.ui.button import Button
@@ -47,15 +47,21 @@ class PlayScene(BaseScene):
 
     def update(self, dt: float):
         self.update_ui(dt)
-        if self.paused or self.sim.status != RUNNING:
+        if self.paused:
             return
         self.tick_timer += dt
+        if self.sim.status != RUNNING:
+            if self.tick_timer >= settings.PLAY_END_DELAY:
+                self.game.change_scene(result_scene.ResultScene(self.game, self.session, self.sim))
+            return
         if self.tick_timer < settings.PLAY_TICK_SECONDS:
             return
         self.tick_timer -= settings.PLAY_TICK_SECONDS
         self.sim.step()
         self.board.show_sim(self.sim)
         self.show_status()
+        if self.sim.status != RUNNING:
+            self.tick_timer = 0.0
 
     def draw(self, surface: pygame.Surface):
         surface.fill(settings.BG_COLOR)
