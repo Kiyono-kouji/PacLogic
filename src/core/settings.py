@@ -30,6 +30,12 @@ MAX_PELLETS = 8
 DANGER_RADIUS = 2
 DANGER_PENALTY = 5
 
+DIFFICULTIES = {
+    "Easy": {"replan": False, "preview": True, "block_limit": 12},
+    "Medium": {"replan": False, "preview": False, "block_limit": 16},
+    "Hard": {"replan": True, "preview": False, "block_limit": 20},
+}
+
 TICK_CAP_FACTOR = 2
 TICK_CAP_BONUS = 10
 
