@@ -2,6 +2,7 @@ import pygame
 
 from src.core import settings
 from src.logic import blocks
+from src.logic.route import route_costs
 from src.logic.sim import RUNNING
 from src.scenes import menu_scene, result_scene
 from src.scenes.base_scene import BaseScene
@@ -20,7 +21,8 @@ class PlayScene(BaseScene):
         self.board = Board(session.level, pygame.Rect(settings.PLAY_MAP_RECT), session.ghost_count)
         self.paused = False
         self.tick_timer = 0.0
-        self.hud = HUD(settings.PLAY_STATUS_POSITION, session.pellet_mode)
+        self.hud = HUD(settings.PLAY_STATUS_POSITION, session.pellet_mode, session.seconds_left)
+        self.route = []
         self.pause_button = Button(settings.PLAY_PAUSE_RECT, self.toggle_pause, "Pause")
         self.ui = [
             Label("Play", settings.PLAY_TITLE_POSITION, settings.FONT_LARGE),
@@ -40,7 +42,16 @@ class PlayScene(BaseScene):
 
     def show_status(self):
         self.hud.refresh(self.sim)
+        self.route = self.route_preview()
         self.pause_button.visible = self.sim.status == RUNNING
+
+    def route_preview(self) -> list:
+        sim = self.sim
+        if not self.session.config["preview"] or sim.status != RUNNING:
+            return []
+        costs = route_costs(sim.level, sim.pac, sim.pellets, sim.pellet_mode, sim.brain.route)
+        steps_taken = 0 if sim.brain.config["replan"] else sim.tick
+        return [(tile, g + steps_taken, h) for tile, g, h in costs]
 
     def handle_event(self, event: pygame.event.Event):
         self.forward_event(event)
@@ -65,5 +76,5 @@ class PlayScene(BaseScene):
 
     def draw(self, surface: pygame.Surface):
         surface.fill(settings.BG_COLOR)
-        self.board.draw(surface, self.sim.pellets)
+        self.board.draw(surface, self.sim.pellets, self.route)
         self.draw_ui(surface)
