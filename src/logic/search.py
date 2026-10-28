@@ -3,7 +3,7 @@ import math
 import time
 from itertools import count
 
-from src.logic.bfs_search import maze_heuristic
+from src.logic.bfs_search import maze_heuristic, plan_bfs
 from src.logic.grid import Level, manhattan
 from src.logic.search_core import SearchResult, elapsed_ms, make_goal_test, make_successors, rebuild_path
 
@@ -68,8 +68,9 @@ def plan(
 ) -> SearchResult:
     if algorithm not in ALGORITHMS:
         raise ValueError(f"unknown search algorithm {algorithm!r}")
-    if algorithm != ASTAR:
-        raise NotImplementedError(f"{algorithm} is not built yet")
+    if algorithm == BFS:
+        return plan_bfs(level, position, pellets, pellet_mode)
     start = (position, frozenset(pellets) if pellet_mode else frozenset())
     successors = make_successors(level, frozenset(blocked), danger or {})
-    return best_first(start, make_goal_test(level), successors, heuristic_for(level, pellet_mode))
+    g_weight = 1 if algorithm == ASTAR else 0
+    return best_first(start, make_goal_test(level), successors, heuristic_for(level, pellet_mode), g_weight)
