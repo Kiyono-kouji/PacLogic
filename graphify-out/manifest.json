@@ -1,0 +1,68 @@
+{
+  "src/core/resource_loader.py": {
+    "mtime": 1793169274.610626,
+    "seen": 1793169950.346092,
+    "ast_hash": "f00d70bb093134ab5ad5ef9c627e6996",
+    "semantic_hash": "f00d70bb093134ab5ad5ef9c627e6996"
+  },
+  "src/core/settings.py": {
+    "mtime": 1793169506.4842656,
+    "seen": 1793169950.346096,
+    "ast_hash": "ca661c980111608448e8c079ff337a27",
+    "semantic_hash": "ca661c980111608448e8c079ff337a27"
+  },
+  "src/logic/bfs_search.py": {
+    "mtime": 1793169506.4846106,
+    "seen": 1793169950.346097,
+    "ast_hash": "0a8e4eb747fed42ee2c24d9fb822f18f",
+    "semantic_hash": "0a8e4eb747fed42ee2c24d9fb822f18f"
+  },
+  "src/logic/grid.py": {
+    "mtime": 1793169506.4845252,
+    "seen": 1793169950.346098,
+    "ast_hash": "504090747fa77e27b9c777fea057671c",
+    "semantic_hash": "504090747fa77e27b9c777fea057671c"
+  },
+  "src/ui/map_view.py": {
+    "mtime": 1793169277.0450385,
+    "seen": 1793169950.346099,
+    "ast_hash": "36d79d4f3aeefba094a817b5da379c17",
+    "semantic_hash": "36d79d4f3aeefba094a817b5da379c17"
+  },
+  "README.md": {
+    "mtime": 1793168786.404047,
+    "seen": 1793169950.346099,
+    "ast_hash": "0016322d33ad1321d9a57ad7398bb03a",
+    "semantic_hash": "0016322d33ad1321d9a57ad7398bb03a"
+  },
+  "assets/fonts/Jersey10-OFL.txt": {
+    "mtime": 1793168753.778274,
+    "seen": 1793169950.346099,
+    "ast_hash": "b8e71e181851254eef4ddca7800c51e0",
+    "semantic_hash": "b8e71e181851254eef4ddca7800c51e0"
+  },
+  "assets/levels/easy.txt": {
+    "mtime": 1793168753.7699835,
+    "seen": 1793169950.3460999,
+    "ast_hash": "9dbb48ae25fe02999cfcdce90ba10660",
+    "semantic_hash": "9dbb48ae25fe02999cfcdce90ba10660"
+  },
+  "assets/levels/hard.txt": {
+    "mtime": 1793168753.7709644,
+    "seen": 1793169950.3460999,
+    "ast_hash": "70bdbd35295a7c55a52f6124c831d2b5",
+    "semantic_hash": "70bdbd35295a7c55a52f6124c831d2b5"
+  },
+  "assets/levels/medium.txt": {
+    "mtime": 1793168753.771574,
+    "seen": 1793169950.346101,
+    "ast_hash": "2eb1c405d3f376d4be90e873e1df2695",
+    "semantic_hash": "2eb1c405d3f376d4be90e873e1df2695"
+  },
+  "requirements.txt": {
+    "mtime": 1793169219.4468212,
+    "seen": 1793169950.346101,
+    "ast_hash": "fb95625366c35ece93dc26f77366651f",
+    "semantic_hash": "fb95625366c35ece93dc26f77366651f"
+  }
+}
