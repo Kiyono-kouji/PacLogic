@@ -1,6 +1,6 @@
 from src.core import settings
 from src.logic.grid import Level
-from src.logic.search import ASTAR, plan
+from src.logic.search import ASTAR, danger_map, plan
 from src.logic.search_core import SearchResult
 
 
@@ -35,4 +35,13 @@ class PacManBrain:
         return result
 
     def next_move(self, position: tuple, pellets: frozenset, ghosts: tuple) -> str | None:
+        if self.config["replan"]:
+            self.route = self.replan(position, pellets, ghosts)
         return self.route.pop(0) if self.route else None
+
+    def replan(self, position: tuple, pellets: frozenset, ghosts: tuple) -> list:
+        danger = danger_map(self.level, ghosts)
+        result = self.make_plan(position, pellets, frozenset(ghosts), danger)
+        if result.cost is None:
+            result = self.make_plan(position, pellets, frozenset(), danger)
+        return list(result.path)
