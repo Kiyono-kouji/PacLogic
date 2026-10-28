@@ -1,6 +1,7 @@
 import pygame
 
 from src.core import settings
+from src.core.resource_loader import load_font
 from src.logic.grid import Level
 from src.ui.component import Component
 
@@ -58,3 +59,25 @@ class MapView(Component):
         radius = max(1, int(self.tile * settings.PELLET_RADIUS))
         for pellet in pellets:
             pygame.draw.circle(surface, settings.PELLET_COLOR, self.tile_center(pellet), radius)
+
+    def cost_font(self, costs) -> pygame.font.Font | None:
+        widest = max((str(value) for _, g, h in costs for value in (g, h)), key=len)
+        room = self.tile - 2 * int(self.tile * settings.COST_PADDING)
+        for size in settings.COST_FONT_SIZES:
+            font = load_font(size)
+            if font.size(widest)[0] <= room and 2 * font.get_linesize() <= room:
+                return font
+        return None
+
+    def draw_costs(self, surface: pygame.Surface, costs):
+        costs = list(costs)
+        font = self.cost_font(costs) if costs else None
+        if font is None:
+            return
+        padding = int(self.tile * settings.COST_PADDING)
+        for tile, g, h in costs:
+            rect = pygame.Rect(self.tile_topleft(tile), (self.tile, self.tile))
+            surface.fill(settings.COST_TILE_COLOR, rect.inflate(-2, -2))
+            surface.blit(font.render(str(g), True, settings.COST_G_COLOR), (rect.x + padding, rect.y + padding))
+            h_text = font.render(str(h), True, settings.COST_H_COLOR)
+            surface.blit(h_text, h_text.get_rect(bottomright=(rect.right - padding, rect.bottom - padding)))
