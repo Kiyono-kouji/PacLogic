@@ -19,7 +19,7 @@ class Board(Component):
         self.show_start()
 
     def place(self, character, tile: tuple, direction: str):
-        character.follow(tile, tile, direction, 1.0, self.map_view)
+        character.place(tile, direction, self.map_view)
 
     def show_start(self):
         self.pac_tile = self.level.start

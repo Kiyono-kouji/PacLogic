@@ -39,16 +39,12 @@ class Sim:
         self.tick_cap: int = int(
             settings.TICK_CAP_FACTOR * brain.optimal_cost + settings.TICK_CAP_BONUS
         )
-        self.controllers: list[Iterator] = []
-        if controllers:
-            for i in range(len(self.ghosts)):
-                if i < len(controllers) and controllers[i] is not None:
-                    self.controllers.append(controllers[i])
-                else:
-                    self.controllers.append(idle(self, i))
-        else:
-            for i in range(len(self.ghosts)):
-                self.controllers.append(idle(self, i))
+        self.controllers: list[Iterator] = [
+            controllers[i]
+            if controllers and i < len(controllers) and controllers[i] is not None
+            else idle(self, i)
+            for i in range(len(self.ghosts))
+        ]
 
     def ghost_can_enter(self, tile: tuple[int, int]) -> bool:
         return self.level.passable(tile) and tile not in self.level.safe_zone
@@ -125,7 +121,5 @@ def score_breakdown(sim: Sim, seconds_left: float) -> dict[str, int]:
     }
 
 
-def total_score(breakdown: dict[str, int] | list[int]) -> int:
-    if isinstance(breakdown, dict):
-        return sum(breakdown.values())
-    return sum(breakdown)
+def total_score(breakdown: dict[str, int]) -> int:
+    return sum(breakdown.values())

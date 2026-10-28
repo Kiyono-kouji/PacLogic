@@ -1,45 +1,30 @@
 import pygame
 
-
-def lerp_tile(
-    previous: tuple[int, int], tile: tuple[int, int], progress: float
-) -> tuple[float, float]:
-    clamped = max(0.0, min(1.0, progress))
-    x = previous[0] + (tile[0] - previous[0]) * clamped
-    y = previous[1] + (tile[1] - previous[1]) * clamped
-    return x, y
+from src.core import settings
 
 
 class Character:
     def __init__(self, tile: tuple[int, int] = (0, 0), direction: str = "R"):
         self.tile: tuple[int, int] = tile
-        self.previous_tile: tuple[int, int] = tile
         self.direction: str = direction
-        self.position: tuple[float, float] = (0.0, 0.0)
-        self.tile_size: int = 32
-        self.time: float = 0.0
+        self.tile_size: int = settings.DEFAULT_TILE_SIZE
+        self.position: tuple[int, int] = (
+            tile[0] * self.tile_size,
+            tile[1] * self.tile_size,
+        )
+        self.map_view = None
 
-    def update(self, dt: float):
-        self.time += dt
-
-    def follow(
-        self,
-        previous_tile: tuple[int, int],
-        tile: tuple[int, int],
-        direction: str,
-        progress: float,
-        map_view,
-    ):
-        self.previous_tile = previous_tile
+    def place(self, tile: tuple[int, int], direction: str = "", map_view=None):
         self.tile = tile
         if direction:
             self.direction = direction
-        self.tile_size = map_view.tile
-        interp = lerp_tile(previous_tile, tile, progress)
-        self.position = (
-            map_view.rect.x + interp[0] * map_view.tile,
-            map_view.rect.y + interp[1] * map_view.tile,
-        )
+        if map_view is not None:
+            self.map_view = map_view
+        if self.map_view is not None:
+            self.tile_size = self.map_view.tile
+            self.position = self.map_view.tile_topleft(tile)
+        else:
+            self.position = (tile[0] * self.tile_size, tile[1] * self.tile_size)
 
     def draw(self, surface: pygame.Surface):
         raise NotImplementedError
