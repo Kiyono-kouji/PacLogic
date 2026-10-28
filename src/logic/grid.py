@@ -1,6 +1,6 @@
 import random
 from collections import deque
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from functools import cached_property
 from pathlib import Path
 
@@ -148,3 +148,50 @@ def _carve_maze(width: int, height: int, rng: random.Random) -> set:
             dx, dy = rng.choice(closed_sides)
             floor.add((x + dx, y + dy))
     return floor
+
+
+def _farthest(distances: dict) -> tuple:
+    return max(distances, key=distances.get)
+
+
+def _route_tiles(level: Level, stops: tuple) -> set:
+    tiles = set()
+    for a, b in zip(stops, stops[1:]):
+        dist_a = bfs_dist(level, a)
+        dist_b = bfs_dist(level, b)
+        tiles |= {tile for tile in dist_a if dist_a[tile] + dist_b.get(tile, dist_a[b] + 1) == dist_a[b]}
+    return tiles
+
+
+def _pick_ghosts(level: Level, count: int, rng: random.Random) -> tuple:
+    dist_start = bfs_dist(level, level.start)
+    excluded = _route_tiles(level, (level.start, level.goal)) | level.safe_zone | level.pellets
+    candidates = [
+        tile for tile in sorted(level.floor_tiles)
+        if tile not in excluded and dist_start[tile] >= settings.GHOST_MIN_START_DISTANCE
+    ]
+    rng.shuffle(candidates)
+    for spacing in settings.GHOST_SPACINGS:
+        chosen = []
+        for tile in candidates:
+            if all(manhattan(tile, other) >= spacing for other in chosen):
+                chosen.append(tile)
+            if len(chosen) == count:
+                return tuple(chosen)
+    raise LevelError(f"{level.name}: not enough tiles for {count} ghost spawns")
+
+
+def generate_level(width: int, height: int, seed: int, pellet_count: int, ghost_count: int = settings.MAX_GHOSTS) -> Level:
+    rng = random.Random(seed)
+    floor = _carve_maze(width, height, rng)
+    walls = frozenset((x, y) for y in range(height) for x in range(width) if (x, y) not in floor)
+    corner = (1, 1)
+    level = Level(f"random {width}x{height} #{seed}", width, height, walls, corner, corner, (), frozenset())
+    goal = _farthest(bfs_dist(level, corner))
+    start = _farthest(bfs_dist(level, goal))
+    level = replace(level, start=start, goal=goal)
+    pellet_spots = sorted(level.floor_tiles - level.safe_zone - {start})
+    level = replace(level, pellets=frozenset(rng.sample(pellet_spots, pellet_count)))
+    level = replace(level, ghosts=_pick_ghosts(level, ghost_count, rng))
+    validate_level(level)
+    return level
