@@ -1,3 +1,4 @@
+from collections import deque
 from dataclasses import dataclass
 from functools import cached_property
 from pathlib import Path
@@ -53,6 +54,22 @@ class Level:
     def adjacency(self) -> dict:
         return {tile: tuple(self.neighbors(tile)) for tile in self.floor_tiles}
 
+    @cached_property
+    def safe_zone(self) -> frozenset:
+        return frozenset(tile for tile, distance in bfs_dist(self, self.goal).items() if distance <= settings.SAFE_RADIUS)
+
+
+def bfs_dist(level: Level, source: tuple, blocked: frozenset = frozenset()) -> dict:
+    distances = {source: 0}
+    frontier = deque([source])
+    while frontier:
+        tile = frontier.popleft()
+        for _, next_tile in level.adjacency.get(tile, ()):
+            if next_tile not in distances and next_tile not in blocked:
+                distances[next_tile] = distances[tile] + 1
+                frontier.append(next_tile)
+    return distances
+
 
 def parse_level(text: str, name: str) -> Level:
     rows = [line.rstrip() for line in text.splitlines()]
@@ -82,7 +99,21 @@ def parse_level(text: str, name: str) -> Level:
     )
 
 
+def validate_level(level: Level):
+    if not 1 <= len(level.ghosts) <= settings.MAX_GHOSTS:
+        raise LevelError(f"{level.name}: needs 1 to {settings.MAX_GHOSTS} ghosts, has {len(level.ghosts)}")
+    if len(level.pellets) > settings.MAX_PELLETS:
+        raise LevelError(f"{level.name}: has {len(level.pellets)} pellets, the limit is {settings.MAX_PELLETS}")
+    unreachable = level.floor_tiles - bfs_dist(level, level.start).keys()
+    if unreachable:
+        raise LevelError(f"{level.name}: {len(unreachable)} floor tiles can't be reached from P, e.g. {min(unreachable)}")
+    for ghost in level.ghosts:
+        if ghost in level.safe_zone:
+            raise LevelError(f"{level.name}: ghost at {ghost} starts inside the safe zone")
+
+
 def load_level(path: Path) -> Level:
     path = Path(path)
     level = parse_level(path.read_text(), path.stem)
+    validate_level(level)
     return level
