@@ -58,16 +58,25 @@ def heuristic_for(level: Level, pellet_mode: bool):
     return maze_heuristic(level) if pellet_mode else manhattan_heuristic(level)
 
 
+def _ghost_reach(level: Level, ghost: tuple) -> set:
+    reached = {ghost}
+    frontier = {ghost}
+    for _ in range(settings.DANGER_RADIUS):
+        frontier = {
+            tile
+            for current in frontier
+            for _, tile in level.adjacency.get(current, ())
+            if tile not in reached and tile not in level.safe_zone
+        }
+        reached |= frontier
+    return reached
+
+
 def danger_map(level: Level, ghosts) -> dict:
-    radius = settings.DANGER_RADIUS
     danger = {}
-    for ghost_x, ghost_y in ghosts:
-        for dy in range(-radius, radius + 1):
-            reach = radius - abs(dy)
-            for dx in range(-reach, reach + 1):
-                tile = (ghost_x + dx, ghost_y + dy)
-                if level.passable(tile):
-                    danger[tile] = settings.DANGER_PENALTY
+    for ghost in ghosts:
+        for tile in _ghost_reach(level, ghost):
+            danger[tile] = settings.DANGER_PENALTY
     return danger
 
 

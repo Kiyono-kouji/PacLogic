@@ -33,7 +33,7 @@ MAX_GHOSTS = 4
 MAX_PELLETS = 8
 
 DANGER_RADIUS = 2
-DANGER_PENALTY = 5
+DANGER_PENALTY = 4
 
 DIFFICULTIES = {
     "Easy": {"replan": False, "preview": True, "block_limit": 12},
