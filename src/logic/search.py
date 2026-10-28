@@ -1,10 +1,60 @@
-from src.logic.grid import Level
-from src.logic.search_core import SearchResult
+import heapq
+import math
+import time
+from itertools import count
+
+from src.logic.bfs_search import maze_heuristic
+from src.logic.grid import Level, manhattan
+from src.logic.search_core import SearchResult, elapsed_ms, make_goal_test, make_successors, rebuild_path
 
 ASTAR = "A*"
 GREEDY = "Greedy"
 BFS = "BFS"
 ALGORITHMS = (ASTAR, GREEDY, BFS)
+
+
+def best_first(start: tuple, is_goal, successors, h, g_weight: int = 1) -> SearchResult:
+    started = time.perf_counter()
+    order = count()
+    best_g = {start: 0}
+    parents = {start: None}
+    closed = set()
+    start_h = h(start)
+    frontier = [(start_h, start_h, next(order), start)]
+    expanded = 0
+    max_frontier = 1
+    while frontier:
+        state = heapq.heappop(frontier)[3]
+        if state in closed:
+            continue
+        if is_goal(state):
+            path = rebuild_path(parents, state)
+            return SearchResult(path, best_g[state], expanded, max_frontier, elapsed_ms(started))
+        closed.add(state)
+        expanded += 1
+        for direction, next_state, step_cost in successors(state):
+            if next_state in closed:
+                continue
+            g = best_g[state] + step_cost
+            if g < best_g.get(next_state, math.inf):
+                best_g[next_state] = g
+                parents[next_state] = (state, direction)
+                next_h = h(next_state)
+                heapq.heappush(frontier, (g_weight * g + next_h, next_h, next(order), next_state))
+        max_frontier = max(max_frontier, len(frontier))
+    return SearchResult([], None, expanded, max_frontier, elapsed_ms(started))
+
+
+def manhattan_heuristic(level: Level):
+    def estimate(state: tuple) -> int:
+        position, remaining = state
+        return max([manhattan(position, level.goal), *(manhattan(position, pellet) for pellet in remaining)])
+
+    return estimate
+
+
+def heuristic_for(level: Level, pellet_mode: bool):
+    return maze_heuristic(level) if pellet_mode else manhattan_heuristic(level)
 
 
 def plan(
@@ -18,4 +68,8 @@ def plan(
 ) -> SearchResult:
     if algorithm not in ALGORITHMS:
         raise ValueError(f"unknown search algorithm {algorithm!r}")
-    raise NotImplementedError(f"{algorithm} is not built yet")
+    if algorithm != ASTAR:
+        raise NotImplementedError(f"{algorithm} is not built yet")
+    start = (position, frozenset(pellets) if pellet_mode else frozenset())
+    successors = make_successors(level, frozenset(blocked), danger or {})
+    return best_first(start, make_goal_test(level), successors, heuristic_for(level, pellet_mode))
