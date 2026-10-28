@@ -1,3 +1,4 @@
+import random
 from collections import deque
 from dataclasses import dataclass
 from functools import cached_property
@@ -117,3 +118,33 @@ def load_level(path: Path) -> Level:
     level = parse_level(path.read_text(), path.stem)
     validate_level(level)
     return level
+
+
+def _carve_maze(width: int, height: int, rng: random.Random) -> set:
+    cells = {(x, y) for x in range(1, width - 1, 2) for y in range(1, height - 1, 2)}
+    floor = {(1, 1)}
+    stack = [(1, 1)]
+    while stack:
+        x, y = stack[-1]
+        options = [
+            (dx, dy) for dx, dy in DIRECTIONS.values()
+            if (x + 2 * dx, y + 2 * dy) in cells and (x + 2 * dx, y + 2 * dy) not in floor
+        ]
+        if not options:
+            stack.pop()
+            continue
+        dx, dy = rng.choice(options)
+        floor |= {(x + dx, y + dy), (x + 2 * dx, y + 2 * dy)}
+        stack.append((x + 2 * dx, y + 2 * dy))
+    for x, y in sorted(cells):
+        open_sides = [(dx, dy) for dx, dy in DIRECTIONS.values() if (x + dx, y + dy) in floor]
+        if len(open_sides) != 1 or rng.random() >= settings.BRAID_CHANCE:
+            continue
+        closed_sides = [
+            (dx, dy) for dx, dy in DIRECTIONS.values()
+            if (x + dx, y + dy) not in floor and (x + 2 * dx, y + 2 * dy) in cells
+        ]
+        if closed_sides:
+            dx, dy = rng.choice(closed_sides)
+            floor.add((x + dx, y + dy))
+    return floor
