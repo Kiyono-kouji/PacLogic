@@ -91,6 +91,36 @@ REPEAT_MIN = 2
 REPEAT_MAX = 9
 OP_CAP = 100
 
+BLOCK_WIDTH = 150
+BLOCK_HEIGHT = 34
+BLOCK_RADIUS = 4
+BLOCK_TAB_WIDTH = 16
+BLOCK_TAB_HEIGHT = 6
+BLOCK_TAB_OFFSET = 14
+BLOCK_TEXT_PADDING = 10
+BLOCK_FONT_SIZE = 24
+BLOCK_TEXT_COLOR = (250, 250, 255)
+BLOCK_TYPING_COLOR = WARNING_COLOR
+BLOCK_COLORS = {
+    "move-up": (66, 135, 245),
+    "move-right": (66, 135, 245),
+    "move-down": (66, 135, 245),
+    "move-left": (66, 135, 245),
+    "wait": (230, 160, 40),
+    "repeat": (240, 110, 60),
+    "when-start": (90, 190, 90),
+}
+BLOCK_LABELS = {
+    "move-up": "Move Up",
+    "move-right": "Move Right",
+    "move-down": "Move Down",
+    "move-left": "Move Left",
+    "wait": "Wait",
+    "repeat": "Repeat",
+    "when-start": "When Start",
+}
+
 WALL_CORNER = 0.25
 EXIT_INSET = 0.15
 PELLET_RADIUS = 0.15
+INDENT = 24
