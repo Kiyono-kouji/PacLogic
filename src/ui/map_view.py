@@ -2,14 +2,16 @@ import pygame
 
 from src.core import settings
 from src.logic.grid import Level
+from src.ui.component import Component
 
 
 def fit_tile_size(level: Level, area: pygame.Rect) -> int:
     return max(1, min(area.width // level.width, area.height // level.height))
 
 
-class MapView:
+class MapView(Component):
     def __init__(self, level: Level, area: pygame.Rect):
+        super().__init__()
         self.level = level
         self.tile = fit_tile_size(level, area)
         size = (level.width * self.tile, level.height * self.tile)
@@ -48,7 +50,8 @@ class MapView:
             return None
         return (mouse_position[0] - self.rect.x) // self.tile, (mouse_position[1] - self.rect.y) // self.tile
 
-    def draw(self, surface: pygame.Surface, pellets, route):
+    def draw(self, surface: pygame.Surface, pellets=None, route=()):
+        pellets = self.level.pellets if pellets is None else pellets
         surface.blit(self.background, self.rect)
         for tile in route:
             surface.blit(self.route_tile, self.tile_topleft(tile))
