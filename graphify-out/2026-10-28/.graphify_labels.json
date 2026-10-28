@@ -1,1 +1,14 @@
-{"0": "Level Model and BFS", "1": "Module Imports and Helpers", "2": "Map View Rendering", "3": "BFS Search and Heuristic", "4": "Level Files and Parsing", "5": "Font and Project Docs"}
+{
+  "0": "Level",
+  "1": "Component",
+  "2": "MapView",
+  "3": "BaseScene",
+  "4": "load_level",
+  "5": "Jersey 10 font (Soft Type Project, 2023)",
+  "6": "Sim",
+  "7": "blocks.py",
+  "8": "Button",
+  "9": "Enemy",
+  "10": "Player",
+  "11": ".__init__"
+}
