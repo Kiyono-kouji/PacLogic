@@ -44,8 +44,14 @@ def draw_block(surface: pygame.Surface, block: dict, position: tuple[int, int], 
     surface.blit(count, count.get_rect(midright=(rect.right - settings.BLOCK_TEXT_PADDING, rect.centery)))
 
 
-def draw_program(surface: pygame.Surface, program: list, origin: tuple[int, int]):
+def draw_program(
+    surface: pygame.Surface,
+    program: list,
+    origin: tuple[int, int],
+    typing_index: int | None = None,
+    typing: str | None = None,
+):
     for index in reversed(range(len(program))):
         block = program[index]
         position = (origin[0] + block["depth"] * settings.INDENT, origin[1] + index * settings.BLOCK_HEIGHT)
-        draw_block(surface, block, position)
+        draw_block(surface, block, position, typing if index == typing_index else None)

@@ -32,9 +32,12 @@ class ProgramEditor(Component):
         self.press_position: tuple[int, int] | None = None
         self.dragging = False
         self.mouse = (0, 0)
+        self.scroll = 0
+        self.typing_index: int | None = None
+        self.typed = ""
 
     def origin(self) -> tuple[int, int]:
-        return self.header_position[0], self.header_position[1] + settings.BLOCK_HEIGHT
+        return self.header_position[0], self.header_position[1] + settings.BLOCK_HEIGHT - self.scroll
 
     def block_at(self, position: tuple[int, int]) -> int | None:
         if not self.program_panel.rect.collidepoint(position):
@@ -68,12 +71,13 @@ class ProgramEditor(Component):
     def drop(self, position: tuple[int, int]):
         if self.program_panel.rect.collidepoint(position):
             if self.source is None and not blocks.can_add(self.program, self.limit):
+                self.flash.show("Block limit reached")
                 return
             index = self.insertion_index(position)
             low, high = blocks.depth_range(self.program, index)
             depth = max(low, min(high, (position[0] - self.origin()[0]) // settings.INDENT))
             self.place(index, depth - self.held[0]["depth"])
-        elif self.source is not None:
+        elif self.source is not None and not self.palette_panel.rect.collidepoint(position):
             self.place(self.source, 0)
 
     def place(self, index: int, shift: int):
@@ -83,11 +87,46 @@ class ProgramEditor(Component):
     def release(self, position: tuple[int, int]):
         if self.dragging:
             self.drop(position)
+        elif self.source is not None and self.program[self.source]["type"] in blocks.COUNT_RANGES:
+            self.typing_index, self.typed = self.source, ""
         self.held, self.source, self.press_position, self.dragging = [], None, None, False
+        self.scroll_by(0)
+
+    def delete(self, index: int):
+        start, stop = blocks.block_span(self.program, index)
+        del self.program[start:stop]
+        self.scroll_by(0)
+
+    def confirm_count(self):
+        block = self.program[self.typing_index]
+        if self.typed.isdigit() and blocks.valid_count(block["type"], int(self.typed)):
+            block["n"] = int(self.typed)
+        else:
+            low, high = blocks.COUNT_RANGES[block["type"]]
+            self.flash.show(f"Enter a number from {low} to {high}")
+        self.typing_index, self.typed = None, ""
+
+    def type_key(self, event: pygame.event.Event):
+        if event.key in (pygame.K_RETURN, pygame.K_KP_ENTER):
+            self.confirm_count()
+        elif event.key == pygame.K_BACKSPACE:
+            self.typed = self.typed[:-1]
+        elif event.unicode.isdigit() and len(self.typed) < settings.COUNT_MAX_DIGITS:
+            self.typed += event.unicode
+
+    def scroll_by(self, steps: int):
+        content = (len(self.program) + 1) * settings.BLOCK_HEIGHT + 2 * settings.EDITOR_PADDING
+        limit = max(0, content - self.program_panel.rect.height)
+        self.scroll = max(0, min(limit, self.scroll - steps * settings.SCROLL_STEP))
 
     def handle_event(self, event: pygame.event.Event) -> bool:
         if not self.visible:
             return False
+        if event.type == pygame.KEYDOWN and self.typing_index is not None:
+            self.type_key(event)
+            return True
+        if event.type == pygame.MOUSEBUTTONDOWN and self.typing_index is not None:
+            self.confirm_count()
         if event.type == pygame.MOUSEMOTION:
             self.mouse = event.pos
             if self.press_position and not self.dragging:
@@ -96,6 +135,14 @@ class ProgramEditor(Component):
                 if max(abs(moved_x), abs(moved_y)) > settings.DRAG_THRESHOLD:
                     self.start_drag()
             return self.dragging
+        if event.type == pygame.MOUSEWHEEL and self.program_panel.rect.collidepoint(self.mouse):
+            self.scroll_by(event.y)
+            return True
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
+            index = self.block_at(event.pos)
+            if index is not None:
+                self.delete(index)
+            return index is not None
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             return self.press(event.pos)
         if event.type == pygame.MOUSEBUTTONUP and event.button == 1 and self.press_position:
@@ -110,8 +157,11 @@ class ProgramEditor(Component):
         self.program_panel.draw(surface)
         for rect, template in self.palette_slots:
             block_view.draw_block(surface, template, rect.topleft)
-        block_view.draw_block(surface, {"type": block_view.START}, self.header_position)
-        block_view.draw_program(surface, self.program, self.origin())
+        origin = self.origin()
+        surface.set_clip(self.program_panel.rect)
+        block_view.draw_block(surface, {"type": block_view.START}, (origin[0], origin[1] - settings.BLOCK_HEIGHT))
+        block_view.draw_program(surface, self.program, origin, self.typing_index, self.typed)
+        surface.set_clip(None)
         if self.dragging:
             head_indent = self.held[0]["depth"] * settings.INDENT
             block_view.draw_program(surface, self.held, (self.mouse[0] - head_indent, self.mouse[1]))
