@@ -97,3 +97,10 @@ class Sim:
         if self.tick >= self.tick_cap:
             self.status = BLOCKED
             return
+
+    def run(self, max_ticks: int | None = None) -> str:
+        while self.status == RUNNING:
+            if max_ticks is not None and self.tick >= max_ticks:
+                break
+            self.step()
+        return self.status

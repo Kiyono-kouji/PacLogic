@@ -1,8 +1,6 @@
-from pathlib import Path
-
 from src.core import settings
 from src.logic.grid import parse_level
-from src.logic.sim import RUNNING, Sim
+from src.logic.sim import CAUGHT, ESCAPED, Sim
 
 
 class TestBrain:
@@ -16,9 +14,37 @@ class TestBrain:
         return None
 
 
-def main():
-    level_path = settings.LEVELS_DIR / "easy.txt"
-    text = level_path.read_text()
+def ghost_controller(moves: list[str]):
+    for move in moves:
+        yield move
+    while True:
+        yield None
+
+
+def check_corridor_same_tile():
+    text = (settings.LEVELS_DIR / "easy.txt").read_text()
+    level = parse_level(text, "easy")
+    brain = TestBrain(["R"])
+    sim = Sim(level, brain, False, 1, [ghost_controller([])])
+    sim.ghosts[0] = (level.start[0] + 1, level.start[1])
+    sim.step()
+    assert sim.status == CAUGHT
+    assert sim.is_caught()
+
+
+def check_corridor_tile_swap():
+    text = (settings.LEVELS_DIR / "easy.txt").read_text()
+    level = parse_level(text, "easy")
+    brain = TestBrain(["R"])
+    sim = Sim(level, brain, False, 1, [ghost_controller(["L"])])
+    sim.ghosts[0] = (level.start[0] + 1, level.start[1])
+    sim.step()
+    assert sim.status == CAUGHT
+    assert sim.is_caught()
+
+
+def check_headless_run():
+    text = (settings.LEVELS_DIR / "easy.txt").read_text()
     level = parse_level(text, "easy")
     moves = [
         "R", "R", "R", "R", "D", "D", "R", "R",
@@ -26,10 +52,17 @@ def main():
         "D", "D", "D", "D", "D", "D", "D", "D",
     ]
     brain = TestBrain(moves)
-    sim = Sim(level, brain, pellet_mode=False, ghost_count=len(level.ghosts))
-    while sim.status == RUNNING:
-        sim.step()
-    print(f"Simulation completed at tick {sim.tick} with status: {sim.status}")
+    sim = Sim(level, brain, False, len(level.ghosts))
+    outcome = sim.run()
+    assert outcome == ESCAPED
+    assert sim.status == ESCAPED
+
+
+def main():
+    check_corridor_same_tile()
+    check_corridor_tile_swap()
+    check_headless_run()
+    print("All K04 checks passed successfully: same-tile catch, tile-swap catch, and headless run.")
 
 
 if __name__ == "__main__":
