@@ -5,4 +5,6 @@ ASSETS_DIR = ROOT_DIR / "assets"
 FONTS_DIR = ASSETS_DIR / "fonts"
 LEVELS_DIR = ASSETS_DIR / "levels"
 
+DEFAULT_FONT = FONTS_DIR / "Jersey10-Regular.ttf"
+
 MOVE_ORDER = ("U", "R", "D", "L")
