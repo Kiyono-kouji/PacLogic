@@ -14,10 +14,38 @@ FPS = 60
 MAX_DT = 0.05
 BG_COLOR = (10, 10, 20)
 
+FONT_SMALL = 24
+FONT_MEDIUM = 32
+FONT_LARGE = 56
+TEXT_COLOR = (235, 235, 245)
+TEXT_DIM_COLOR = (140, 140, 165)
+WARNING_COLOR = (255, 90, 90)
+ACCENT_COLOR = (255, 200, 60)
+
 MOVE_ORDER = ("U", "R", "D", "L")
 SAFE_RADIUS = 3
 MAX_GHOSTS = 4
 MAX_PELLETS = 8
+
+DANGER_RADIUS = 2
+DANGER_PENALTY = 5
+
+DIFFICULTIES = {
+    "Easy": {"replan": False, "preview": True, "block_limit": 12},
+    "Medium": {"replan": False, "preview": False, "block_limit": 16},
+    "Hard": {"replan": True, "preview": False, "block_limit": 20},
+}
+
+TICK_CAP_FACTOR = 2
+TICK_CAP_BONUS = 10
+
+SCORE = {
+    "caught": 1000,
+    "blocked": 500,
+    "escaped": 0,
+    "time_factor": 10,
+    "ticks_factor": 5,
+}
 
 BRAID_CHANCE = 0.5
 GHOST_MIN_START_DISTANCE = 8
@@ -29,6 +57,36 @@ SAFE_ZONE_COLOR = (60, 200, 120, 70)
 EXIT_COLOR = (90, 230, 140)
 PELLET_COLOR = (255, 214, 170)
 ROUTE_COLOR = (255, 230, 80, 90)
+
+PACMAN_COLOR = (255, 215, 0)
+PACMAN_MOUTH_SPEED = 8.0
+GHOST_COLORS = (
+    (235, 45, 45),
+    (240, 130, 200),
+    (70, 210, 230),
+    (245, 160, 60),
+)
+GHOST_SELECTED_COLOR = (255, 255, 255)
+GHOST_EYE_COLOR = (255, 255, 255)
+GHOST_PUPIL_COLOR = (30, 60, 200)
+GHOST_WAVE_SPEED = 6.0
+
+BUTTON_COLOR = (40, 52, 120)
+BUTTON_HOVER_COLOR = (62, 78, 170)
+BUTTON_PRESSED_COLOR = (28, 36, 84)
+BUTTON_TEXT_COLOR = (240, 240, 250)
+BUTTON_RADIUS = 8
+BUTTON_FONT_SIZE = 28
+
+PANEL_COLOR = (20, 22, 44)
+PANEL_BORDER_COLOR = (70, 80, 150)
+PANEL_BORDER_WIDTH = 2
+
+WAIT_MIN = 1
+WAIT_MAX = 9
+REPEAT_MIN = 2
+REPEAT_MAX = 9
+OP_CAP = 100
 
 WALL_CORNER = 0.25
 EXIT_INSET = 0.15
