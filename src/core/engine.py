@@ -1,18 +1,9 @@
 import pygame
 
 from src.core import settings
+from src.core.session import Session
 from src.scenes.base_scene import BaseScene
-
-
-class _PlaceholderScene(BaseScene):
-    def handle_event(self, event: pygame.event.Event):
-        pass
-
-    def update(self, dt: float):
-        pass
-
-    def draw(self, surface: pygame.Surface):
-        surface.fill(settings.BG_COLOR)
+from src.scenes.menu_scene import MenuScene
 
 
 class Game:
@@ -23,8 +14,8 @@ class Game:
         )
         pygame.display.set_caption(settings.TITLE)
         self.clock: pygame.time.Clock = pygame.time.Clock()
-        self.session = None
-        self.scene: BaseScene = _PlaceholderScene(self, None)
+        self.session = Session()
+        self.scene: BaseScene = MenuScene(self, self.session)
         self.running: bool = True
 
     def change_scene(self, scene: BaseScene):
