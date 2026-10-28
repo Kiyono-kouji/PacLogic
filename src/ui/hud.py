@@ -1,3 +1,5 @@
+import math
+
 import pygame
 
 from src.core import settings
@@ -14,13 +16,14 @@ STATUS_TEXT = {
 
 
 class HUD(Component):
-    def __init__(self, position: tuple[int, int], pellet_mode: bool):
+    def __init__(self, position: tuple[int, int], pellet_mode: bool, seconds_left: float):
         super().__init__()
         self.pellet_mode = pellet_mode
+        self.seconds_left = seconds_left
         self.status_label = Label("", position, settings.FONT_MEDIUM)
-        names = ["Tick", "Algorithm", "Plans made", "Nodes expanded", "Last search"]
+        names = ["Tick", "Planning left", "Algorithm", "Plans made", "Nodes expanded", "Last search"]
         if pellet_mode:
-            names.insert(1, "Pellets left")
+            names.insert(2, "Pellets left")
         x, y = position
         top = y + settings.HUD_STATUS_GAP
         self.value_labels = {
@@ -34,6 +37,7 @@ class HUD(Component):
         brain = sim.brain
         values = {
             "Tick": f"{sim.tick} / {sim.tick_cap}",
+            "Planning left": f"{math.ceil(self.seconds_left)} s",
             "Pellets left": str(len(sim.pellets)),
             "Algorithm": f"{brain.algorithm} ({brain.difficulty})",
             "Plans made": str(brain.plans_made),
