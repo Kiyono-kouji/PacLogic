@@ -7,6 +7,13 @@ LEVELS_DIR = ASSETS_DIR / "levels"
 
 DEFAULT_FONT = FONTS_DIR / "Jersey10-Regular.ttf"
 
+TITLE = "PacLogic"
+SCREEN_WIDTH = 1280
+SCREEN_HEIGHT = 720
+FPS = 60
+MAX_DT = 0.05
+BG_COLOR = (10, 10, 20)
+
 MOVE_ORDER = ("U", "R", "D", "L")
 SAFE_RADIUS = 3
 MAX_GHOSTS = 4
