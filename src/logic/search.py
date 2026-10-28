@@ -3,6 +3,7 @@ import math
 import time
 from itertools import count
 
+from src.core import settings
 from src.logic.bfs_search import maze_heuristic, plan_bfs
 from src.logic.grid import Level, manhattan
 from src.logic.search_core import SearchResult, elapsed_ms, make_goal_test, make_successors, rebuild_path
@@ -55,6 +56,19 @@ def manhattan_heuristic(level: Level):
 
 def heuristic_for(level: Level, pellet_mode: bool):
     return maze_heuristic(level) if pellet_mode else manhattan_heuristic(level)
+
+
+def danger_map(level: Level, ghosts) -> dict:
+    radius = settings.DANGER_RADIUS
+    danger = {}
+    for ghost_x, ghost_y in ghosts:
+        for dy in range(-radius, radius + 1):
+            reach = radius - abs(dy)
+            for dx in range(-reach, reach + 1):
+                tile = (ghost_x + dx, ghost_y + dy)
+                if level.passable(tile):
+                    danger[tile] = settings.DANGER_PENALTY
+    return danger
 
 
 def plan(
