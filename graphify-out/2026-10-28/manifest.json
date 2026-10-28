@@ -1,0 +1,146 @@
+{
+  "src/core/resource_loader.py": {
+    "mtime": 1793186732.519042,
+    "seen": 1793189530.619485,
+    "ast_hash": "f00d70bb093134ab5ad5ef9c627e6996",
+    "semantic_hash": "f00d70bb093134ab5ad5ef9c627e6996"
+  },
+  "src/core/settings.py": {
+    "mtime": 1793189316.0728638,
+    "seen": 1793189530.6194859,
+    "ast_hash": "2cc5bcd0bb6c29b6036030bc84220207",
+    "semantic_hash": ""
+  },
+  "src/logic/bfs_search.py": {
+    "mtime": 1793186732.5197127,
+    "seen": 1793189530.619488,
+    "ast_hash": "0a8e4eb747fed42ee2c24d9fb822f18f",
+    "semantic_hash": "0a8e4eb747fed42ee2c24d9fb822f18f"
+  },
+  "src/logic/grid.py": {
+    "mtime": 1793186732.5198581,
+    "seen": 1793189530.619488,
+    "ast_hash": "504090747fa77e27b9c777fea057671c",
+    "semantic_hash": "504090747fa77e27b9c777fea057671c"
+  },
+  "src/ui/map_view.py": {
+    "mtime": 1793186732.520703,
+    "seen": 1793189530.619491,
+    "ast_hash": "d7710d194dda58241c3fb88e35bf58df",
+    "semantic_hash": ""
+  },
+  "README.md": {
+    "mtime": 1793168786.0,
+    "seen": 1793189530.619491,
+    "ast_hash": "0016322d33ad1321d9a57ad7398bb03a",
+    "semantic_hash": "0016322d33ad1321d9a57ad7398bb03a"
+  },
+  "assets/fonts/Jersey10-OFL.txt": {
+    "mtime": 1793168753.0,
+    "seen": 1793189530.619492,
+    "ast_hash": "b8e71e181851254eef4ddca7800c51e0",
+    "semantic_hash": "b8e71e181851254eef4ddca7800c51e0"
+  },
+  "assets/levels/easy.txt": {
+    "mtime": 1793168753.0,
+    "seen": 1793189530.619492,
+    "ast_hash": "9dbb48ae25fe02999cfcdce90ba10660",
+    "semantic_hash": "9dbb48ae25fe02999cfcdce90ba10660"
+  },
+  "assets/levels/hard.txt": {
+    "mtime": 1793168753.0,
+    "seen": 1793189530.619492,
+    "ast_hash": "70bdbd35295a7c55a52f6124c831d2b5",
+    "semantic_hash": "70bdbd35295a7c55a52f6124c831d2b5"
+  },
+  "assets/levels/medium.txt": {
+    "mtime": 1793168753.0,
+    "seen": 1793189530.619493,
+    "ast_hash": "2eb1c405d3f376d4be90e873e1df2695",
+    "semantic_hash": "2eb1c405d3f376d4be90e873e1df2695"
+  },
+  "requirements.txt": {
+    "mtime": 1793169219.0,
+    "seen": 1793189530.619493,
+    "ast_hash": "fb95625366c35ece93dc26f77366651f",
+    "semantic_hash": "fb95625366c35ece93dc26f77366651f"
+  },
+  "main.py": {
+    "mtime": 1793186732.5187185,
+    "seen": 1793189530.619482,
+    "ast_hash": "3f8194a21fcc43b7304f6e4ae1fa6966",
+    "semantic_hash": ""
+  },
+  "scripts/sim_check.py": {
+    "mtime": 1793186732.5188315,
+    "seen": 1793189530.619484,
+    "ast_hash": "2e0a62374813b04a403533eadcc3c72b",
+    "semantic_hash": ""
+  },
+  "src/core/engine.py": {
+    "mtime": 1793186732.5189383,
+    "seen": 1793189530.619484,
+    "ast_hash": "08c8cb373161e50c39902dc1d40ce97a",
+    "semantic_hash": ""
+  },
+  "src/entities/character.py": {
+    "mtime": 1793186732.519387,
+    "seen": 1793189530.6194859,
+    "ast_hash": "36b2d8ea6949b998397f5e0e0e9f3f79",
+    "semantic_hash": ""
+  },
+  "src/entities/enemy.py": {
+    "mtime": 1793186732.5195,
+    "seen": 1793189530.619487,
+    "ast_hash": "04657f01e397c22106ffb37e92665ea4",
+    "semantic_hash": ""
+  },
+  "src/entities/player.py": {
+    "mtime": 1793186732.5196054,
+    "seen": 1793189530.619487,
+    "ast_hash": "cb3aa1db2ba08c400588abc1ef0a9a16",
+    "semantic_hash": ""
+  },
+  "src/logic/blocks.py": {
+    "mtime": 1793189034.6542287,
+    "seen": 1793189530.619488,
+    "ast_hash": "7ee68b43fe3e9fc23f254b51aad53251",
+    "semantic_hash": ""
+  },
+  "src/logic/sim.py": {
+    "mtime": 1793186732.5199916,
+    "seen": 1793189530.619489,
+    "ast_hash": "beedd800e4718099561d961eafcbeeca",
+    "semantic_hash": ""
+  },
+  "src/scenes/base_scene.py": {
+    "mtime": 1793186732.5202,
+    "seen": 1793189530.619489,
+    "ast_hash": "f03aad5179a9c09c2b1d432c8e87476d",
+    "semantic_hash": ""
+  },
+  "src/ui/button.py": {
+    "mtime": 1793188998.523676,
+    "seen": 1793189530.619489,
+    "ast_hash": "c066d25cc4dd41553690382ce5a1e997",
+    "semantic_hash": ""
+  },
+  "src/ui/component.py": {
+    "mtime": 1793186732.5203807,
+    "seen": 1793189530.6194901,
+    "ast_hash": "e983b51c99838e5597bc05ccb17dc109",
+    "semantic_hash": ""
+  },
+  "src/ui/image.py": {
+    "mtime": 1793186732.520516,
+    "seen": 1793189530.6194901,
+    "ast_hash": "66c34b435ee44bfe90c66d0264ea2fc8",
+    "semantic_hash": ""
+  },
+  "src/ui/panel.py": {
+    "mtime": 1793189019.4665658,
+    "seen": 1793189530.619491,
+    "ast_hash": "2da56399f1f9c484a672e6d274660614",
+    "semantic_hash": ""
+  }
+}
