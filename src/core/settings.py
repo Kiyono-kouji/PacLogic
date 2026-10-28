@@ -22,6 +22,14 @@ MAX_PELLETS = 8
 TICK_CAP_FACTOR = 2
 TICK_CAP_BONUS = 10
 
+SCORE = {
+    "caught": 1000,
+    "blocked": 500,
+    "escaped": 0,
+    "time_factor": 10,
+    "ticks_factor": 5,
+}
+
 BRAID_CHANCE = 0.5
 GHOST_MIN_START_DISTANCE = 8
 GHOST_SPACINGS = (6, 4, 2, 0)

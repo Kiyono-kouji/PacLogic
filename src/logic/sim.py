@@ -104,3 +104,28 @@ class Sim:
                 break
             self.step()
         return self.status
+
+
+def score_breakdown(sim: Sim, seconds_left: float) -> dict[str, int]:
+    if sim.status == CAUGHT:
+        time_points = max(0, int(seconds_left)) * settings.SCORE["time_factor"]
+        ticks_left = max(0, sim.tick_cap - sim.tick)
+        ticks_points = ticks_left * settings.SCORE["ticks_factor"]
+        return {
+            "Outcome": settings.SCORE["caught"],
+            "Time bonus": time_points,
+            "Ticks bonus": ticks_points,
+        }
+    if sim.status == BLOCKED:
+        return {
+            "Outcome": settings.SCORE["blocked"],
+        }
+    return {
+        "Outcome": settings.SCORE["escaped"],
+    }
+
+
+def total_score(breakdown: dict[str, int] | list[int]) -> int:
+    if isinstance(breakdown, dict):
+        return sum(breakdown.values())
+    return sum(breakdown)
