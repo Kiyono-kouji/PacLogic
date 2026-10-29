@@ -1,14 +1,14 @@
 {
   "src/core/resource_loader.py": {
-    "mtime": 1793186732.519042,
-    "seen": 1793189530.619485,
-    "ast_hash": "f00d70bb093134ab5ad5ef9c627e6996",
-    "semantic_hash": "f00d70bb093134ab5ad5ef9c627e6996"
+    "mtime": 1793234524.281543,
+    "seen": 1793311707.607934,
+    "ast_hash": "752e14759cd720c819dfb2d70bab02d5",
+    "semantic_hash": ""
   },
   "src/core/settings.py": {
-    "mtime": 1793193422.372565,
-    "seen": 1793194239.757368,
-    "ast_hash": "99c8fd391352046603d36d0896bb56ef",
+    "mtime": 1793234524.2818685,
+    "seen": 1793311707.607935,
+    "ast_hash": "ea5e4202766f0877929b5745ea2da3a4",
     "semantic_hash": ""
   },
   "src/logic/bfs_search.py": {
@@ -18,15 +18,15 @@
     "semantic_hash": "0a8e4eb747fed42ee2c24d9fb822f18f"
   },
   "src/logic/grid.py": {
-    "mtime": 1793186732.5198581,
-    "seen": 1793189530.619488,
-    "ast_hash": "504090747fa77e27b9c777fea057671c",
-    "semantic_hash": "504090747fa77e27b9c777fea057671c"
+    "mtime": 1793234524.2828767,
+    "seen": 1793311707.607938,
+    "ast_hash": "603657a931516161a5b54642a8fb74ea",
+    "semantic_hash": ""
   },
   "src/ui/map_view.py": {
-    "mtime": 1793186732.520703,
-    "seen": 1793189530.619491,
-    "ast_hash": "d7710d194dda58241c3fb88e35bf58df",
+    "mtime": 1793234524.2838626,
+    "seen": 1793311707.607945,
+    "ast_hash": "239ec9142edab9a9dfbfa24fbfa11f11",
     "semantic_hash": ""
   },
   "README.md": {
@@ -78,27 +78,27 @@
     "semantic_hash": ""
   },
   "src/core/engine.py": {
-    "mtime": 1793186732.5189383,
-    "seen": 1793189530.619484,
-    "ast_hash": "08c8cb373161e50c39902dc1d40ce97a",
+    "mtime": 1793234524.2813709,
+    "seen": 1793311707.607933,
+    "ast_hash": "0092d6849055b60fa896205248a74421",
     "semantic_hash": ""
   },
   "src/entities/character.py": {
-    "mtime": 1793186732.519387,
-    "seen": 1793189530.6194859,
-    "ast_hash": "36b2d8ea6949b998397f5e0e0e9f3f79",
+    "mtime": 1793234524.2819853,
+    "seen": 1793311707.607935,
+    "ast_hash": "97826943516f7a5ca91229d0c519c955",
     "semantic_hash": ""
   },
   "src/entities/enemy.py": {
-    "mtime": 1793186732.5195,
-    "seen": 1793189530.619487,
-    "ast_hash": "04657f01e397c22106ffb37e92665ea4",
+    "mtime": 1793234524.2822642,
+    "seen": 1793311707.607936,
+    "ast_hash": "4e8a38d78040ee4ba0b6fe4e3dd107bd",
     "semantic_hash": ""
   },
   "src/entities/player.py": {
-    "mtime": 1793186732.5196054,
-    "seen": 1793189530.619487,
-    "ast_hash": "cb3aa1db2ba08c400588abc1ef0a9a16",
+    "mtime": 1793234524.2826176,
+    "seen": 1793311707.607936,
+    "ast_hash": "d9e234376fa21b9a9c23c63e862cf205",
     "semantic_hash": ""
   },
   "src/logic/blocks.py": {
@@ -108,9 +108,9 @@
     "semantic_hash": ""
   },
   "src/logic/sim.py": {
-    "mtime": 1793186732.5199916,
-    "seen": 1793189530.619489,
-    "ast_hash": "beedd800e4718099561d961eafcbeeca",
+    "mtime": 1793234524.2832172,
+    "seen": 1793311707.6079402,
+    "ast_hash": "727ae465e0e1449b6e86c1e25e22781b",
     "semantic_hash": ""
   },
   "src/scenes/base_scene.py": {
@@ -131,12 +131,6 @@
     "ast_hash": "e983b51c99838e5597bc05ccb17dc109",
     "semantic_hash": ""
   },
-  "src/ui/image.py": {
-    "mtime": 1793186732.520516,
-    "seen": 1793189530.6194901,
-    "ast_hash": "66c34b435ee44bfe90c66d0264ea2fc8",
-    "semantic_hash": ""
-  },
   "src/ui/panel.py": {
     "mtime": 1793191413.8284,
     "seen": 1793194239.757376,
@@ -150,9 +144,9 @@
     "semantic_hash": ""
   },
   "src/logic/search.py": {
-    "mtime": 1793193417.2147696,
-    "seen": 1793194239.757372,
-    "ast_hash": "d988b05d82fa061369b71d44391d9b0b",
+    "mtime": 1793234524.2830467,
+    "seen": 1793311707.607939,
+    "ast_hash": "28eb104f6d879501d41fa72347a99f41",
     "semantic_hash": ""
   },
   "src/logic/search_core.py": {
@@ -162,14 +156,14 @@
     "semantic_hash": ""
   },
   "src/ui/block_view.py": {
-    "mtime": 1793194223.8932197,
-    "seen": 1793194239.757374,
+    "mtime": 1793194786.8359566,
+    "seen": 1793311707.6079419,
     "ast_hash": "eca9085033e4b5d23a05975256702264",
     "semantic_hash": ""
   },
   "src/ui/flash_message.py": {
-    "mtime": 1793193422.4050167,
-    "seen": 1793194239.757375,
+    "mtime": 1793194786.8362873,
+    "seen": 1793311707.607944,
     "ast_hash": "0d132caa0186bb5526e57822e7efe8bc",
     "semantic_hash": ""
   },
@@ -180,9 +174,363 @@
     "semantic_hash": ""
   },
   "src/ui/program_editor.py": {
-    "mtime": 1793194220.2433817,
-    "seen": 1793194239.757377,
-    "ast_hash": "8fb39b92408b0c673a8d82cd9f042a3a",
+    "mtime": 1793234910.3071337,
+    "seen": 1793311707.607945,
+    "ast_hash": "6f5356203333806d1c6946e4f964fd7b",
+    "semantic_hash": ""
+  },
+  "scripts/sample_programs.py": {
+    "mtime": 1793311671.8787117,
+    "seen": 1793311707.607931,
+    "ast_hash": "865089c9b5abc4562d288bb9276fee5f",
+    "semantic_hash": ""
+  },
+  "src/core/session.py": {
+    "mtime": 1793234524.2816195,
+    "seen": 1793311707.607934,
+    "ast_hash": "7aa2841a77bf3302b784b93098d9ce7c",
+    "semantic_hash": ""
+  },
+  "src/logic/route.py": {
+    "mtime": 1793234524.2829435,
+    "seen": 1793311707.607938,
+    "ast_hash": "42e65108dc56c898d4c351c5285efdba",
+    "semantic_hash": ""
+  },
+  "src/scenes/menu_scene.py": {
+    "mtime": 1793234524.28331,
+    "seen": 1793311707.6079402,
+    "ast_hash": "459474303ac2ccec59d0ed85913fbe10",
+    "semantic_hash": ""
+  },
+  "src/scenes/plan_scene.py": {
+    "mtime": 1793234910.3066669,
+    "seen": 1793311707.6079412,
+    "ast_hash": "5304064ea64f89891f163be29c595c55",
+    "semantic_hash": ""
+  },
+  "src/scenes/play_scene.py": {
+    "mtime": 1793234524.2834697,
+    "seen": 1793311707.6079412,
+    "ast_hash": "6a671bae5ca74b59e17d8210e56bdfaa",
+    "semantic_hash": ""
+  },
+  "src/scenes/preview_scene.py": {
+    "mtime": 1793234524.2835352,
+    "seen": 1793311707.6079412,
+    "ast_hash": "f897702a461d3e70317c4267d8ff2685",
+    "semantic_hash": ""
+  },
+  "src/scenes/result_scene.py": {
+    "mtime": 1793234524.2836058,
+    "seen": 1793311707.6079419,
+    "ast_hash": "f7acb163573253fe0fe75c5a31069416",
+    "semantic_hash": ""
+  },
+  "src/ui/board.py": {
+    "mtime": 1793234524.2836905,
+    "seen": 1793311707.6079419,
+    "ast_hash": "cf3ba3b2ae8026fc3bd505c273015aaf",
+    "semantic_hash": ""
+  },
+  "src/ui/hud.py": {
+    "mtime": 1793234524.2837574,
+    "seen": 1793311707.607944,
+    "ast_hash": "a9407642c0da7564df1607c2dfd13b74",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/ghosts/cyan-ghost/move-down/move-down-1.png": {
+    "mtime": 1793234524.2748916,
+    "seen": 1793311707.607948,
+    "ast_hash": "fe09bf1b6c48b844188eff39a90193de",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/ghosts/cyan-ghost/move-down/move-down-2.png": {
+    "mtime": 1793234524.2749503,
+    "seen": 1793311707.607948,
+    "ast_hash": "dedafde5056200242a2887ce019f5931",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/ghosts/cyan-ghost/move-left/move-left-1.png": {
+    "mtime": 1793234524.2750578,
+    "seen": 1793311707.607949,
+    "ast_hash": "5d5e45c437393d2ea37ae963cc340f03",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/ghosts/cyan-ghost/move-left/move-left-2.png": {
+    "mtime": 1793234524.2751172,
+    "seen": 1793311707.607949,
+    "ast_hash": "c715e4ad8514f72d4fa7197b16e73a05",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/ghosts/cyan-ghost/move-right/move-right-1.png": {
+    "mtime": 1793234524.2752905,
+    "seen": 1793311707.607949,
+    "ast_hash": "a56cf4adcbf0e9307b1cf19c1552c9b1",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/ghosts/cyan-ghost/move-right/move-right-2.png": {
+    "mtime": 1793234524.2753723,
+    "seen": 1793311707.60795,
+    "ast_hash": "1a2937b313abfffb36b1a61960bc9caa",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/ghosts/cyan-ghost/move-up/move-up-1.png": {
+    "mtime": 1793234524.2754822,
+    "seen": 1793311707.60795,
+    "ast_hash": "dd8450a07b35c502ebee53ce24d565de",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/ghosts/cyan-ghost/move-up/move-up-2.png": {
+    "mtime": 1793234524.2755508,
+    "seen": 1793311707.60795,
+    "ast_hash": "8e0a88d2035f2fc4f93bd6e3a53a6564",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/ghosts/cyan-ghost/selected/selected-down.png": {
+    "mtime": 1793234524.275674,
+    "seen": 1793311707.6079512,
+    "ast_hash": "48a35ff02990e8deff79a9934e8e598b",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/ghosts/orange-ghost/move-down/move-down-1.png": {
+    "mtime": 1793234524.2758574,
+    "seen": 1793311707.6079512,
+    "ast_hash": "8aabfdadf00f7574fc23bc1b4f5fb10f",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/ghosts/orange-ghost/move-down/move-down-2.png": {
+    "mtime": 1793234524.275945,
+    "seen": 1793311707.6079512,
+    "ast_hash": "de56d85c1e2f39d375f60b153c19ac07",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/ghosts/orange-ghost/move-left/move-left-1.png": {
+    "mtime": 1793234524.2760563,
+    "seen": 1793311707.6079519,
+    "ast_hash": "bd660e28d88da080b4fdf34de20e8b91",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/ghosts/orange-ghost/move-left/move-left-2.png": {
+    "mtime": 1793234524.2761407,
+    "seen": 1793311707.6079519,
+    "ast_hash": "4b01d86b224c2bd18280fcb4d75bc184",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/ghosts/orange-ghost/move-right/move-right-1.png": {
+    "mtime": 1793234524.276265,
+    "seen": 1793311707.6079519,
+    "ast_hash": "a45315c5f635503b60861e927588d803",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/ghosts/orange-ghost/move-right/move-right-2.png": {
+    "mtime": 1793234524.2763422,
+    "seen": 1793311707.6079519,
+    "ast_hash": "1433117d1cd55b8ac87bc91ee7950933",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/ghosts/orange-ghost/move-up/move-up-1.png": {
+    "mtime": 1793234524.2764657,
+    "seen": 1793311707.6079528,
+    "ast_hash": "8181df447f5910804abe4089c5369bd8",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/ghosts/orange-ghost/move-up/move-up-2.png": {
+    "mtime": 1793234524.2765355,
+    "seen": 1793311707.6079528,
+    "ast_hash": "050cf7f280f7dfafecd28144af92e0fb",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/ghosts/orange-ghost/selected/selected-down.png": {
+    "mtime": 1793234524.2766976,
+    "seen": 1793311707.6079528,
+    "ast_hash": "bcd196ae25d6b730f7e72fc9ed9c1f22",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/ghosts/pink-ghost/move-down/move-down-1.png": {
+    "mtime": 1793234524.2768397,
+    "seen": 1793311707.607954,
+    "ast_hash": "6ba22a38625755bc0809347ac42992e7",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/ghosts/pink-ghost/move-down/move-down-2.png": {
+    "mtime": 1793234524.2769067,
+    "seen": 1793311707.607954,
+    "ast_hash": "10941de6b77381f570cebbef46ffdb57",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/ghosts/pink-ghost/move-left/move-left-1.png": {
+    "mtime": 1793234524.2770133,
+    "seen": 1793311707.607954,
+    "ast_hash": "9da2a54e8bfb00cc85b871b746830734",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/ghosts/pink-ghost/move-left/move-left-2.png": {
+    "mtime": 1793234524.277075,
+    "seen": 1793311707.607954,
+    "ast_hash": "cfb695dc5176531ad2a8696a8d9e046b",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/ghosts/pink-ghost/move-right/move-right-1.png": {
+    "mtime": 1793234524.2771628,
+    "seen": 1793311707.607955,
+    "ast_hash": "9ec2e825166ad512ac4f482c4ef4e8f4",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/ghosts/pink-ghost/move-right/move-right-2.png": {
+    "mtime": 1793234524.2772233,
+    "seen": 1793311707.607955,
+    "ast_hash": "0b821671792010ade364fe1c50a645d3",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/ghosts/pink-ghost/move-up/move-up-1.png": {
+    "mtime": 1793234524.2773225,
+    "seen": 1793311707.607955,
+    "ast_hash": "8ebf3445929cdd2a7a3d90e7e2b05f34",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/ghosts/pink-ghost/move-up/move-up-2.png": {
+    "mtime": 1793234524.2773783,
+    "seen": 1793311707.607956,
+    "ast_hash": "2612e0aa288a6bccd9e165cb8868d24d",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/ghosts/pink-ghost/selected/selected-down.png": {
+    "mtime": 1793234524.2775373,
+    "seen": 1793311707.607956,
+    "ast_hash": "2b0282a4c1ce606496eb7e1058ee032d",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/ghosts/red-ghost/move-down/move-down-1.png": {
+    "mtime": 1793234524.2776697,
+    "seen": 1793311707.607956,
+    "ast_hash": "137cee2603b6f5f6cfc9d452d5578843",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/ghosts/red-ghost/move-down/move-down-2.png": {
+    "mtime": 1793234524.277743,
+    "seen": 1793311707.607956,
+    "ast_hash": "1109f2b0c8f6de048a08de3c0feca45f",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/ghosts/red-ghost/move-left/move-left-1.png": {
+    "mtime": 1793234524.2778623,
+    "seen": 1793311707.607957,
+    "ast_hash": "fe62ffa0266533b9f65e80db9c62d022",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/ghosts/red-ghost/move-left/move-left-2.png": {
+    "mtime": 1793234524.277925,
+    "seen": 1793311707.607957,
+    "ast_hash": "259e62875c3b796428eb0919e5970090",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/ghosts/red-ghost/move-right/move-right-1.png": {
+    "mtime": 1793234524.2780578,
+    "seen": 1793311707.607957,
+    "ast_hash": "a836ee7a3b30810cfaf70a54b55cece0",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/ghosts/red-ghost/move-right/move-right-2.png": {
+    "mtime": 1793234524.278154,
+    "seen": 1793311707.607958,
+    "ast_hash": "117d1a5e1bca4b3d784b2c8c2d670445",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/ghosts/red-ghost/move-up/move-up-1.png": {
+    "mtime": 1793234524.2782843,
+    "seen": 1793311707.607958,
+    "ast_hash": "d1a6be0752c5d4ed31b694022d17fb6e",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/ghosts/red-ghost/move-up/move-up-2.png": {
+    "mtime": 1793234524.2783704,
+    "seen": 1793311707.607958,
+    "ast_hash": "582c6d28dd55596822feaa1d21a2b071",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/ghosts/red-ghost/selected/selected-down.png": {
+    "mtime": 1793234524.2785766,
+    "seen": 1793311707.607958,
+    "ast_hash": "c68540b2317242d1800e8489daeca820",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/items/pellet/pellet.png": {
+    "mtime": 1793234524.278821,
+    "seen": 1793311707.607959,
+    "ast_hash": "2fe5cc5d12ee6c9d2ed4a9f2b877e7d3",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/pacman/eat-down/eat-down-1.png": {
+    "mtime": 1793234524.2790446,
+    "seen": 1793311707.607959,
+    "ast_hash": "0a9e8f01c3028015643753a8a1f1342c",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/pacman/eat-down/eat-down-2.png": {
+    "mtime": 1793234524.2792795,
+    "seen": 1793311707.607959,
+    "ast_hash": "3a594528109f423d5068db63c79ac228",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/pacman/eat-down/eat-down-3.png": {
+    "mtime": 1793234524.2794237,
+    "seen": 1793311707.60796,
+    "ast_hash": "cb24043b9edf0a48e2f701625e7190f2",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/pacman/eat-left/eat-left-1.png": {
+    "mtime": 1793234524.2797062,
+    "seen": 1793311707.60796,
+    "ast_hash": "da39bfd38c3f8c88956a3acfb03ff159",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/pacman/eat-left/eat-left-2.png": {
+    "mtime": 1793234524.279855,
+    "seen": 1793311707.60796,
+    "ast_hash": "34d6542a6051685b23d87bc847d2fc0b",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/pacman/eat-left/eat-left-3.png": {
+    "mtime": 1793234524.2799916,
+    "seen": 1793311707.6079612,
+    "ast_hash": "0a9e8f01c3028015643753a8a1f1342c",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/pacman/eat-right/eat-right-1.png": {
+    "mtime": 1793234524.2802396,
+    "seen": 1793311707.6079612,
+    "ast_hash": "d318fbefb2430f7c873e29aacfdb88ae",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/pacman/eat-right/eat-right-2.png": {
+    "mtime": 1793234524.280398,
+    "seen": 1793311707.6079612,
+    "ast_hash": "d1218d810f533fb6d911e876afb4b9ca",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/pacman/eat-right/eat-right-3.png": {
+    "mtime": 1793234524.2805443,
+    "seen": 1793311707.6079621,
+    "ast_hash": "0a9e8f01c3028015643753a8a1f1342c",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/pacman/eat-up/eat-up-1.png": {
+    "mtime": 1793234524.2807827,
+    "seen": 1793311707.6079621,
+    "ast_hash": "b2d6a28ffe5a5d59dd740a357d2a7f41",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/pacman/eat-up/eat-up-2.png": {
+    "mtime": 1793234524.2809153,
+    "seen": 1793311707.6079628,
+    "ast_hash": "b2d6a28ffe5a5d59dd740a357d2a7f41",
+    "semantic_hash": ""
+  },
+  "assets/images/sprites/pacman/eat-up/eat-up-3.png": {
+    "mtime": 1793234524.2810442,
+    "seen": 1793311707.6079628,
+    "ast_hash": "0a9e8f01c3028015643753a8a1f1342c",
     "semantic_hash": ""
   }
 }
