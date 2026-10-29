@@ -106,8 +106,18 @@ class ProgramEditor(Component):
             self.flash.show(f"Enter a number from {low} to {high}")
         self.typing_index, self.typed = None, ""
 
+    def finish(self):
+        if self.dragging and self.source is not None:
+            self.place(self.source, 0)
+        if self.typing_index is not None and self.typed:
+            self.confirm_count()
+        self.held, self.source, self.press_position, self.dragging = [], None, None, False
+        self.typing_index, self.typed = None, ""
+
     def type_key(self, event: pygame.event.Event):
-        if event.key in (pygame.K_RETURN, pygame.K_KP_ENTER):
+        if event.key == pygame.K_ESCAPE:
+            self.typing_index, self.typed = None, ""
+        elif event.key in (pygame.K_RETURN, pygame.K_KP_ENTER):
             self.confirm_count()
         elif event.key == pygame.K_BACKSPACE:
             self.typed = self.typed[:-1]
