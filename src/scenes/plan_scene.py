@@ -34,6 +34,7 @@ class PlanScene(BaseScene):
         return self.overview if self.selected is None else self.side_board
 
     def select(self, index: int | None):
+        self.editor.finish()
         self.selected = index
         self.editor.visible = index is not None
         self.side_board.select_ghost(index)
@@ -45,6 +46,7 @@ class PlanScene(BaseScene):
         self.hint.set_text(f"Ghost {index + 1}: drag blocks in, right-click to delete, Esc to close")
 
     def lock_and_run(self):
+        self.editor.finish()
         self.session.trees = [blocks.parse(program) for program in self.session.programs]
         self.game.change_scene(play_scene.PlayScene(self.game, self.session))
 
