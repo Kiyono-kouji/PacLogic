@@ -1,5 +1,7 @@
+import math
+
 from src.core import settings
-from src.logic.grid import Level
+from src.logic.grid import Level, bfs_dist, move
 from src.logic.search import ASTAR, danger_map, plan
 from src.logic.search_core import SearchResult
 
@@ -35,13 +37,21 @@ class PacManBrain:
         return result
 
     def next_move(self, position: tuple, pellets: frozenset, ghosts: tuple) -> str | None:
-        if self.config["replan"]:
-            self.route = self.replan(position, pellets, ghosts)
+        if self.config["replan"] and not self.replan(position, pellets, ghosts):
+            return self.hold_move(position, ghosts)
         return self.route.pop(0) if self.route else None
 
-    def replan(self, position: tuple, pellets: frozenset, ghosts: tuple) -> list:
-        danger = danger_map(self.level, ghosts)
-        result = self.make_plan(position, pellets, frozenset(ghosts), danger)
-        if result.cost is None:
-            result = self.make_plan(position, pellets, frozenset(), danger)
-        return list(result.path)
+    def replan(self, position: tuple, pellets: frozenset, ghosts: tuple) -> bool:
+        result = self.make_plan(position, pellets, frozenset(ghosts), danger_map(self.level, ghosts))
+        self.route = list(result.path)
+        return result.cost is not None
+
+    def hold_move(self, position: tuple, ghosts: tuple) -> str | None:
+        ghost_distances = [bfs_dist(self.level, ghost) for ghost in ghosts]
+
+        def nearest_ghost(direction: str | None) -> float:
+            tile = position if direction is None else move(position, direction)
+            return min((distances.get(tile, math.inf) for distances in ghost_distances), default=math.inf)
+
+        options = [None, *(direction for direction, tile in self.level.adjacency[position] if tile not in ghosts)]
+        return max(options, key=nearest_ghost)
