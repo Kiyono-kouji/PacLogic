@@ -1,0 +1,15 @@
+replanning,level,mode,caught,escaped,blocked,rounds,catch_rate,avg_ticks,avg_nodes_expanded
+off,easy,Exit,3,1,0,4,0.75,15.5,45.0
+off,easy,Pellets,4,0,0,4,1.0,22.0,44.0
+off,medium,Exit,0,4,0,4,0.0,30.0,40.0
+off,medium,Pellets,1,3,0,4,0.25,50.5,124.0
+off,hard,Exit,2,2,0,4,0.5,24.0,46.0
+off,hard,Pellets,2,2,0,4,0.5,46.5,512.0
+off,all,all,12,12,0,24,0.5,31.4,135.2
+on,easy,Exit,0,4,0,4,0.0,24.0,387.8
+on,easy,Pellets,3,1,0,4,0.75,36.0,5368.5
+on,medium,Exit,0,4,0,4,0.0,30.0,557.0
+on,medium,Pellets,0,4,0,4,0.0,68.5,3840.0
+on,hard,Exit,0,4,0,4,0.0,38.0,1146.8
+on,hard,Pellets,2,2,0,4,0.5,46.5,20751.5
+on,all,all,5,19,0,24,0.208,40.5,5341.9
