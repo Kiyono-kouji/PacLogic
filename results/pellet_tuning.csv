@@ -1,0 +1,13 @@
+pellets,algorithm,slowest_ms,within_budget
+7,A*,28.9,True
+7,Greedy,32.4,True
+7,BFS,27.7,True
+8,A*,55.2,True
+8,Greedy,59.8,True
+8,BFS,46.0,True
+9,A*,133.2,False
+9,Greedy,123.5,False
+9,BFS,105.5,False
+10,A*,282.7,False
+10,Greedy,257.2,False
+10,BFS,235.8,False
