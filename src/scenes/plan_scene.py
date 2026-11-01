@@ -26,8 +26,11 @@ class PlanScene(BaseScene):
         self.timer = Label("", settings.PLAN_TIMER_POSITION, settings.FONT_LARGE, anchor="topright")
         self.hint = Label("", settings.PLAN_HINT_POSITION, settings.FONT_SMALL, settings.TEXT_DIM_COLOR)
         self.lock_button = Button(settings.PLAN_LOCK_RECT, self.lock_and_run, "Lock & Run")
+        program_rect = self.editor.program_panel.rect
+        count_position = (program_rect.right - settings.EDITOR_PADDING, program_rect.top + settings.EDITOR_PADDING)
+        self.block_count = Label("", count_position, settings.FONT_SMALL, settings.TEXT_DIM_COLOR, anchor="topright")
         self.selected: int | None = None
-        self.ui = [self.title, self.timer, self.hint, self.editor, self.lock_button, self.flash]
+        self.ui = [self.title, self.timer, self.hint, self.editor, self.block_count, self.lock_button, self.flash]
         self.select(None)
 
     def active_board(self) -> Board:
@@ -36,14 +39,14 @@ class PlanScene(BaseScene):
     def select(self, index: int | None):
         self.editor.finish()
         self.selected = index
-        self.editor.visible = index is not None
+        self.editor.visible = self.block_count.visible = index is not None
         self.side_board.select_ghost(index)
         if index is None:
             self.hint.set_text("Click a ghost to write its program")
             return
         self.editor.program = self.session.programs[index]
-        self.editor.scroll_by(0)
-        self.hint.set_text(f"Ghost {index + 1}: drag blocks in, right-click to delete, Esc to close")
+        self.editor.scroll = 0
+        self.hint.set_text(f"Ghost {index + 1}: drag blocks in, click a number to change it, right-click to delete, Esc to close")
 
     def lock_and_run(self):
         self.editor.finish()
@@ -66,6 +69,8 @@ class PlanScene(BaseScene):
     def update(self, dt: float):
         self.session.seconds_left = max(0.0, self.session.seconds_left - dt)
         self.update_ui(dt)
+        used = len(self.editor.program)
+        self.block_count.set_text(f"{used}/{self.editor.limit} blocks", settings.WARNING_COLOR if used >= self.editor.limit else settings.TEXT_DIM_COLOR)
         seconds = math.ceil(self.session.seconds_left)
         warning = seconds < settings.TIMER_WARNING_SECONDS
         self.timer.set_text(f"{seconds // 60}:{seconds % 60:02d}", settings.WARNING_COLOR if warning else settings.TEXT_COLOR)
