@@ -36,6 +36,7 @@ class PlayScene(BaseScene):
     def toggle_pause(self):
         self.paused = not self.paused
         self.pause_button.text = "Resume" if self.paused else "Pause"
+        self.hud.refresh(self.sim, self.paused)
 
     def back_to_menu(self):
         self.game.change_scene(menu_scene.MenuScene(self.game, self.session))
