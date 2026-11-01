@@ -54,6 +54,9 @@ class PlayScene(BaseScene):
         return [(tile, g + steps_taken, h) for tile, g, h in costs]
 
     def handle_event(self, event: pygame.event.Event):
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE and self.sim.status == RUNNING:
+            self.toggle_pause()
+            return
         self.forward_event(event)
 
     def update(self, dt: float):
