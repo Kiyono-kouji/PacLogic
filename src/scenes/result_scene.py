@@ -25,7 +25,7 @@ class ResultScene(BaseScene):
             Panel(settings.RESULT_PANEL_RECT),
             Label(title, settings.RESULT_TITLE_POSITION, settings.FONT_LARGE, color, "center"),
             Label(
-                f"Ticks: {sim.tick} / {sim.tick_cap}",
+                f"{sim.level.name.capitalize()} level, {session.difficulty} AI   Ticks: {sim.tick} / {sim.tick_cap}",
                 settings.RESULT_TICKS_POSITION,
                 settings.FONT_SMALL,
                 settings.TEXT_DIM_COLOR,

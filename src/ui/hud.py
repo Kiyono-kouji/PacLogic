@@ -31,8 +31,8 @@ class HUD(Component):
             for row, name in enumerate(names)
         }
 
-    def refresh(self, sim):
-        text, color = STATUS_TEXT[sim.status]
+    def refresh(self, sim, paused: bool = False):
+        text, color = ("Paused", settings.ACCENT_COLOR) if paused and sim.status == RUNNING else STATUS_TEXT[sim.status]
         self.status_label.set_text(text, color)
         brain = sim.brain
         values = {
