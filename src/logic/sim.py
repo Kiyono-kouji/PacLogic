@@ -50,12 +50,7 @@ class Sim:
         return self.level.passable(tile) and tile not in self.level.safe_zone
 
     def is_caught(self) -> bool:
-        for i, ghost in enumerate(self.ghosts):
-            if ghost == self.pac:
-                return True
-            if ghost == self.previous_pac and self.pac == self.previous_ghosts[i]:
-                return True
-        return False
+        return any(ghost in (self.pac, self.previous_pac) for ghost in self.ghosts)
 
     def step(self):
         if self.status != RUNNING:
