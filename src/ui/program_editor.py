@@ -149,7 +149,7 @@ class ProgramEditor(Component):
             self.scroll_by(event.y)
             return True
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
-            index = self.block_at(event.pos)
+            index = None if self.press_position else self.block_at(event.pos)
             if index is not None:
                 self.delete(index)
             return index is not None
