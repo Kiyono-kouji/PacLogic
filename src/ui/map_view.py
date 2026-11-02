@@ -2,10 +2,8 @@ import pygame
 
 from src.core import settings
 from src.core.resource_loader import load_font, load_sprite, sprite_size
-from src.logic.grid import DIRECTIONS, Level, move
+from src.logic.grid import Level
 from src.ui.component import Component
-
-CORNERS = ((-1, -1, "U", "L"), (1, -1, "U", "R"), (-1, 1, "D", "L"), (1, 1, "D", "R"))
 
 
 def fit_tile_size(level: Level, area: pygame.Rect) -> int:
@@ -15,6 +13,12 @@ def fit_tile_size(level: Level, area: pygame.Rect) -> int:
 def _stepped_fill(surface: pygame.Surface, color: tuple, rect: pygame.Rect, step: int):
     pygame.draw.rect(surface, color, rect.inflate(-2 * step, 0))
     pygame.draw.rect(surface, color, rect.inflate(0, -2 * step))
+
+
+def _rounded_block(surface: pygame.Surface, color: tuple, rect: pygame.Rect, step: int):
+    steps = settings.WALL_ROUND_STEPS
+    for row in range(steps + 1):
+        pygame.draw.rect(surface, color, rect.inflate(-2 * (steps - row) * step, -2 * row * step))
 
 
 def _stepped_outline(surface: pygame.Surface, color: tuple, rect: pygame.Rect, step: int):
@@ -57,30 +61,11 @@ class MapView(Component):
         _stepped_fill(background, settings.EXIT_CORE_COLOR, pad.inflate(-4 * self.pixel, -4 * self.pixel), self.pixel)
         return background
 
-    def is_wall(self, tile: tuple) -> bool:
-        return not self.level.in_bounds(tile) or tile in self.level.walls
-
     def draw_wall(self, surface: pygame.Surface, tile: tuple):
         rect, step = self.local_rect(tile), self.pixel
-        pygame.draw.rect(surface, settings.MAP_WALL_COLOR, rect)
-        open_side = {direction: not self.is_wall(move(tile, direction)) for direction in DIRECTIONS}
-        edges = {
-            "U": (rect.left, rect.top, rect.width, step),
-            "D": (rect.left, rect.bottom - step, rect.width, step),
-            "L": (rect.left, rect.top, step, rect.height),
-            "R": (rect.right - step, rect.top, step, rect.height),
-        }
-        for direction, edge in edges.items():
-            if open_side[direction]:
-                pygame.draw.rect(surface, settings.MAP_WALL_EDGE_COLOR, edge)
-        for dx, dy, vertical, horizontal in CORNERS:
-            corner_x = rect.left if dx < 0 else rect.right - step
-            corner_y = rect.top if dy < 0 else rect.bottom - step
-            if open_side[vertical] and open_side[horizontal]:
-                pygame.draw.rect(surface, settings.MAP_FLOOR_COLOR, (corner_x, corner_y, step, step))
-                pygame.draw.rect(surface, settings.MAP_WALL_EDGE_COLOR, (corner_x - dx * step, corner_y - dy * step, step, step))
-            elif not open_side[vertical] and not open_side[horizontal] and not self.is_wall((tile[0] + dx, tile[1] + dy)):
-                pygame.draw.rect(surface, settings.MAP_WALL_EDGE_COLOR, (corner_x, corner_y, step, step))
+        _rounded_block(surface, settings.MAP_WALL_LIGHT_COLOR, rect, step)
+        _rounded_block(surface, settings.MAP_WALL_SHADE_COLOR, pygame.Rect(rect.left + step, rect.top + step, rect.width - step, rect.height - step), step)
+        _rounded_block(surface, settings.MAP_WALL_COLOR, pygame.Rect(rect.left + step, rect.top + step, rect.width - 2 * step, rect.height - 2 * step), step)
 
     def draw_dither(self, surface: pygame.Surface, rect: pygame.Rect):
         step = self.pixel
