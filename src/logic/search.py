@@ -97,3 +97,25 @@ def plan(
     successors = make_successors(level, frozenset(blocked), danger or {})
     g_weight = 1 if algorithm == ASTAR else 0
     return best_first(start, make_goal_test(level), successors, heuristic_for(level, pellet_mode), g_weight)
+
+
+def plan_to_pellet(
+    level: Level,
+    position: tuple,
+    pellets: frozenset,
+    blocked: frozenset = frozenset(),
+    danger: dict | None = None,
+) -> SearchResult:
+    remaining = frozenset(pellets)
+    if not remaining:
+        return SearchResult([], None, 0, 0, 0.0)
+    successors = make_successors(level, frozenset(blocked), danger or {})
+
+    def ate_pellet(state: tuple) -> bool:
+        return len(state[1]) < len(remaining)
+
+    def nearest_pellet(state: tuple) -> int:
+        tile, left = state
+        return 0 if len(left) < len(remaining) else min(manhattan(tile, pellet) for pellet in left)
+
+    return best_first((position, remaining), ate_pellet, successors, nearest_pellet)
