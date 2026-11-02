@@ -43,7 +43,7 @@ class PacManBrain:
         if self.config["replan"]:
             danger = danger_map(self.level, ghosts)
             if not self.replan(position, pellets, ghosts, danger) and not self.detour_to_pellet(position, pellets, ghosts, danger):
-                return self.hold_move(position, ghosts)
+                return self.hold_move(position, pellets, ghosts)
         return self.route.pop(0) if self.route else None
 
     def replan(self, position: tuple, pellets: frozenset, ghosts: tuple, danger: dict) -> bool:
@@ -58,15 +58,16 @@ class PacManBrain:
         self.route = list(result.path)
         return result.cost is not None
 
-    def hold_move(self, position: tuple, ghosts: tuple) -> str | None:
+    def hold_move(self, position: tuple, pellets: frozenset, ghosts: tuple) -> str | None:
         ghost_distances = [bfs_dist(self.level, ghost, self.level.safe_zone) for ghost in ghosts]
-        to_goal = distance_table(self.level, self.level.goal)
+        targets = pellets if self.pellet_mode and pellets else (self.level.goal,)
+        target_distances = [distance_table(self.level, target) for target in targets]
 
         def preference(direction: str | None) -> tuple:
             tile = position if direction is None else move(position, direction)
             nearest_ghost = min((distances.get(tile, math.inf) for distances in ghost_distances), default=math.inf)
             if nearest_ghost > settings.DANGER_RADIUS:
-                return True, -to_goal[tile]
+                return True, -min(distances[tile] for distances in target_distances)
             return False, nearest_ghost
 
         options = [None, *(direction for direction, tile in self.level.adjacency[position] if tile not in ghosts)]
