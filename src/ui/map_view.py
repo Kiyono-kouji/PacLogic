@@ -19,8 +19,16 @@ class MapView(Component):
         self.rect = pygame.Rect((0, 0), size)
         self.rect.center = area.center
         self.background = self.render_background(size)
-        self.route_tile = pygame.Surface((self.tile, self.tile), pygame.SRCALPHA)
-        self.route_tile.fill(settings.ROUTE_COLOR)
+        self.route_inset = max(1, int(self.tile * settings.ROUTE_INSET))
+        self.route_border = max(2, int(self.tile * settings.ROUTE_BORDER))
+        self.route_tile = self.render_route_tile()
+
+    def render_route_tile(self) -> pygame.Surface:
+        marker = pygame.Surface((self.tile, self.tile), pygame.SRCALPHA)
+        box = marker.get_rect().inflate(-2 * self.route_inset, -2 * self.route_inset)
+        corner = int(box.width * settings.ROUTE_CORNER)
+        pygame.draw.rect(marker, settings.ROUTE_COLOR, box, self.route_border, border_radius=corner)
+        return marker
 
     def render_background(self, size: tuple) -> pygame.Surface:
         background = pygame.Surface(size)
@@ -60,9 +68,12 @@ class MapView(Component):
         for pellet in pellets:
             surface.blit(sprite, sprite.get_rect(center=self.tile_center(pellet)))
 
+    def cost_inset(self) -> int:
+        return self.route_inset + self.route_border + int(self.tile * settings.COST_PADDING)
+
     def cost_font(self, costs) -> pygame.font.Font | None:
         widest = max((str(value) for _, g, h in costs for value in (g, h)), key=len)
-        room = self.tile - 2 * int(self.tile * settings.COST_PADDING)
+        room = self.tile - 2 * self.cost_inset()
         for size in settings.COST_FONT_SIZES:
             font = load_font(size)
             if font.size(widest)[0] <= room and 2 * font.get_linesize() <= room:
@@ -70,14 +81,12 @@ class MapView(Component):
         return None
 
     def draw_costs(self, surface: pygame.Surface, costs):
-        costs = list(costs)
+        costs = list({tile: (tile, g, h) for tile, g, h in costs}.values())
         font = self.cost_font(costs) if costs else None
         if font is None:
             return
-        padding = int(self.tile * settings.COST_PADDING)
         for tile, g, h in costs:
-            rect = pygame.Rect(self.tile_topleft(tile), (self.tile, self.tile))
-            surface.fill(settings.COST_TILE_COLOR, rect.inflate(-2, -2))
-            surface.blit(font.render(str(g), True, settings.COST_G_COLOR), (rect.x + padding, rect.y + padding))
+            inner = pygame.Rect(self.tile_topleft(tile), (self.tile, self.tile)).inflate(-2 * self.cost_inset(), -2 * self.cost_inset())
+            surface.blit(font.render(str(g), True, settings.COST_G_COLOR), inner.topleft)
             h_text = font.render(str(h), True, settings.COST_H_COLOR)
-            surface.blit(h_text, h_text.get_rect(bottomright=(rect.right - padding, rect.bottom - padding)))
+            surface.blit(h_text, h_text.get_rect(bottomright=inner.bottomright))
