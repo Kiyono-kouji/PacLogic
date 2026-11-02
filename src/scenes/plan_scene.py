@@ -79,5 +79,5 @@ class PlanScene(BaseScene):
 
     def draw(self, surface: pygame.Surface):
         surface.fill(settings.BG_COLOR)
-        self.active_board().draw(surface, route=self.route)
+        self.active_board().draw(surface, self.session.pellets_in_play, self.route)
         self.draw_ui(surface)

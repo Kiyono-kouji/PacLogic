@@ -33,7 +33,7 @@ class Sim:
         self.facing: list[str] = ["D"] * len(self.ghosts)
         self.previous_pac: tuple[int, int] = self.pac
         self.previous_ghosts: list[tuple[int, int]] = list(self.ghosts)
-        self.pellets: set[tuple[int, int]] = set(level.pellets)
+        self.pellets: set[tuple[int, int]] = set(level.pellets) if pellet_mode else set()
         self.tick: int = 0
         self.status: str = RUNNING
         self.tick_cap: int = int(

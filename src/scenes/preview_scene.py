@@ -55,5 +55,5 @@ class PreviewScene(BaseScene):
 
     def draw(self, surface: pygame.Surface):
         surface.fill(settings.BG_COLOR)
-        self.board.draw(surface, route=self.route)
+        self.board.draw(surface, self.session.pellets_in_play, self.route)
         self.draw_ui(surface)

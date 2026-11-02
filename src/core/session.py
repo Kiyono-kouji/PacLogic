@@ -69,6 +69,10 @@ class Session:
         return settings.WIN_MODES[self.options["mode"]][1]
 
     @property
+    def pellets_in_play(self) -> frozenset:
+        return self.level.pellets if self.pellet_mode else frozenset()
+
+    @property
     def planning_time(self) -> int:
         return settings.PLANNING_TIMES[self.options["time"]]
 
