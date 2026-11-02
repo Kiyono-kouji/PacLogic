@@ -5,7 +5,7 @@ from itertools import count
 
 from src.core import settings
 from src.logic.bfs_search import maze_heuristic, plan_bfs
-from src.logic.grid import Level, manhattan
+from src.logic.grid import Level, bfs_dist, manhattan
 from src.logic.search_core import SearchResult, elapsed_ms, make_goal_test, make_successors, rebuild_path
 
 ASTAR = "A*"
@@ -72,6 +72,10 @@ def _ghost_reach(level: Level, ghost: tuple) -> set:
     return reached
 
 
+def _reachable(level: Level, position: tuple, blocked: frozenset) -> dict:
+    return bfs_dist(level, position, blocked) if blocked else {tile: 0 for tile in level.floor_tiles}
+
+
 def danger_map(level: Level, ghosts) -> dict:
     danger = {}
     for ghost in ghosts:
@@ -93,7 +97,11 @@ def plan(
         raise ValueError(f"unknown search algorithm {algorithm!r}")
     if algorithm == BFS:
         return plan_bfs(level, position, pellets, pellet_mode)
+    started = time.perf_counter()
     start = (position, frozenset(pellets) if pellet_mode else frozenset())
+    reachable = _reachable(level, position, frozenset(blocked))
+    if any(target not in reachable for target in (level.goal, *start[1])):
+        return SearchResult([], None, 0, 0, elapsed_ms(started))
     successors = make_successors(level, frozenset(blocked), danger or {})
     g_weight = 1 if algorithm == ASTAR else 0
     return best_first(start, make_goal_test(level), successors, heuristic_for(level, pellet_mode), g_weight)
@@ -107,7 +115,8 @@ def plan_to_pellet(
     danger: dict | None = None,
 ) -> SearchResult:
     remaining = frozenset(pellets)
-    if not remaining:
+    reachable = _reachable(level, position, frozenset(blocked))
+    if not any(pellet in reachable for pellet in remaining):
         return SearchResult([], None, 0, 0, 0.0)
     successors = make_successors(level, frozenset(blocked), danger or {})
 
