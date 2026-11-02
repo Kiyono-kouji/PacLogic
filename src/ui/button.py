@@ -44,6 +44,7 @@ class Button(Component):
     def draw(self, surface: pygame.Surface):
         if not self.visible:
             return
-        pygame.draw.rect(surface, self.color(), self.rect, border_radius=settings.BUTTON_RADIUS)
+        pygame.draw.rect(surface, self.color(), self.rect.inflate(-2 * settings.BUTTON_STEP, 0))
+        pygame.draw.rect(surface, self.color(), self.rect.inflate(0, -2 * settings.BUTTON_STEP))
         text_surface = load_font(settings.BUTTON_FONT_SIZE).render(self.text, True, settings.BUTTON_TEXT_COLOR)
         surface.blit(text_surface, text_surface.get_rect(center=self.rect.center))

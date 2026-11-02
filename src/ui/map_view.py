@@ -1,13 +1,27 @@
 import pygame
 
 from src.core import settings
-from src.core.resource_loader import load_font, load_sprite
-from src.logic.grid import Level
+from src.core.resource_loader import load_font, load_sprite, sprite_size
+from src.logic.grid import DIRECTIONS, Level, move
 from src.ui.component import Component
+
+CORNERS = ((-1, -1, "U", "L"), (1, -1, "U", "R"), (-1, 1, "D", "L"), (1, 1, "D", "R"))
 
 
 def fit_tile_size(level: Level, area: pygame.Rect) -> int:
     return max(1, min(area.width // level.width, area.height // level.height))
+
+
+def _stepped_fill(surface: pygame.Surface, color: tuple, rect: pygame.Rect, step: int):
+    pygame.draw.rect(surface, color, rect.inflate(-2 * step, 0))
+    pygame.draw.rect(surface, color, rect.inflate(0, -2 * step))
+
+
+def _stepped_outline(surface: pygame.Surface, color: tuple, rect: pygame.Rect, step: int):
+    pygame.draw.rect(surface, color, (rect.left + step, rect.top, rect.width - 2 * step, step))
+    pygame.draw.rect(surface, color, (rect.left + step, rect.bottom - step, rect.width - 2 * step, step))
+    pygame.draw.rect(surface, color, (rect.left, rect.top + step, step, rect.height - 2 * step))
+    pygame.draw.rect(surface, color, (rect.right - step, rect.top + step, step, rect.height - 2 * step))
 
 
 class MapView(Component):
@@ -15,34 +29,65 @@ class MapView(Component):
         super().__init__()
         self.level = level
         self.tile = fit_tile_size(level, area)
+        self.pixel = max(1, sprite_size(self.tile) // settings.SPRITE_PIXELS)
         size = (level.width * self.tile, level.height * self.tile)
         self.rect = pygame.Rect((0, 0), size)
         self.rect.center = area.center
         self.background = self.render_background(size)
-        self.route_inset = max(1, int(self.tile * settings.ROUTE_INSET))
-        self.route_border = max(2, int(self.tile * settings.ROUTE_BORDER))
         self.route_tile = self.render_route_tile()
 
     def render_route_tile(self) -> pygame.Surface:
         marker = pygame.Surface((self.tile, self.tile), pygame.SRCALPHA)
-        box = marker.get_rect().inflate(-2 * self.route_inset, -2 * self.route_inset)
-        corner = int(box.width * settings.ROUTE_CORNER)
-        pygame.draw.rect(marker, settings.ROUTE_COLOR, box, self.route_border, border_radius=corner)
+        inset = settings.ROUTE_INSET_PIXELS * self.pixel
+        _stepped_outline(marker, settings.ROUTE_COLOR, marker.get_rect().inflate(-2 * inset, -2 * inset), self.pixel)
         return marker
 
     def render_background(self, size: tuple) -> pygame.Surface:
         background = pygame.Surface(size)
         background.fill(settings.MAP_FLOOR_COLOR)
-        corner = int(self.tile * settings.WALL_CORNER)
         for wall in self.level.walls:
-            pygame.draw.rect(background, settings.MAP_WALL_COLOR, self.local_rect(wall), border_radius=corner)
-        safe_zone = pygame.Surface(size, pygame.SRCALPHA)
+            self.draw_wall(background, wall)
+        dither = pygame.Surface(size, pygame.SRCALPHA)
         for tile in self.level.safe_zone:
-            safe_zone.fill(settings.SAFE_ZONE_COLOR, self.local_rect(tile))
-        background.blit(safe_zone, (0, 0))
-        inset = int(self.tile * settings.EXIT_INSET)
-        pygame.draw.rect(background, settings.EXIT_COLOR, self.local_rect(self.level.goal).inflate(-2 * inset, -2 * inset), border_radius=corner)
+            self.draw_dither(dither, self.local_rect(tile))
+        background.blit(dither, (0, 0))
+        inset = settings.EXIT_INSET_PIXELS * self.pixel
+        pad = self.local_rect(self.level.goal).inflate(-2 * inset, -2 * inset)
+        _stepped_fill(background, settings.EXIT_COLOR, pad, self.pixel)
+        _stepped_fill(background, settings.EXIT_CORE_COLOR, pad.inflate(-4 * self.pixel, -4 * self.pixel), self.pixel)
         return background
+
+    def is_wall(self, tile: tuple) -> bool:
+        return not self.level.in_bounds(tile) or tile in self.level.walls
+
+    def draw_wall(self, surface: pygame.Surface, tile: tuple):
+        rect, step = self.local_rect(tile), self.pixel
+        pygame.draw.rect(surface, settings.MAP_WALL_COLOR, rect)
+        open_side = {direction: not self.is_wall(move(tile, direction)) for direction in DIRECTIONS}
+        edges = {
+            "U": (rect.left, rect.top, rect.width, step),
+            "D": (rect.left, rect.bottom - step, rect.width, step),
+            "L": (rect.left, rect.top, step, rect.height),
+            "R": (rect.right - step, rect.top, step, rect.height),
+        }
+        for direction, edge in edges.items():
+            if open_side[direction]:
+                pygame.draw.rect(surface, settings.MAP_WALL_EDGE_COLOR, edge)
+        for dx, dy, vertical, horizontal in CORNERS:
+            corner_x = rect.left if dx < 0 else rect.right - step
+            corner_y = rect.top if dy < 0 else rect.bottom - step
+            if open_side[vertical] and open_side[horizontal]:
+                pygame.draw.rect(surface, settings.MAP_FLOOR_COLOR, (corner_x, corner_y, step, step))
+                pygame.draw.rect(surface, settings.MAP_WALL_EDGE_COLOR, (corner_x - dx * step, corner_y - dy * step, step, step))
+            elif not open_side[vertical] and not open_side[horizontal] and not self.is_wall((tile[0] + dx, tile[1] + dy)):
+                pygame.draw.rect(surface, settings.MAP_WALL_EDGE_COLOR, (corner_x, corner_y, step, step))
+
+    def draw_dither(self, surface: pygame.Surface, rect: pygame.Rect):
+        step = self.pixel
+        for y in range(rect.top, rect.bottom, step):
+            for x in range(rect.left, rect.right, step):
+                if (x // step + y // step) % 2 == 0:
+                    surface.fill(settings.SAFE_ZONE_COLOR, pygame.Rect(x, y, step, step).clip(rect))
 
     def local_rect(self, tile: tuple) -> pygame.Rect:
         return pygame.Rect(tile[0] * self.tile, tile[1] * self.tile, self.tile, self.tile)
@@ -69,7 +114,7 @@ class MapView(Component):
             surface.blit(sprite, sprite.get_rect(center=self.tile_center(pellet)))
 
     def cost_inset(self) -> int:
-        return self.route_inset + self.route_border + int(self.tile * settings.COST_PADDING)
+        return (settings.ROUTE_INSET_PIXELS + 1) * self.pixel + int(self.tile * settings.COST_PADDING)
 
     def cost_font(self, costs) -> pygame.font.Font | None:
         widest = max((str(value) for _, g, h in costs for value in (g, h)), key=len)

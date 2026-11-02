@@ -30,7 +30,8 @@ def draw_block(surface: pygame.Surface, block: dict, position: tuple[int, int], 
         settings.BLOCK_TAB_HEIGHT,
     )
     pygame.draw.rect(surface, color, tab)
-    pygame.draw.rect(surface, color, rect, border_radius=settings.BLOCK_RADIUS)
+    pygame.draw.rect(surface, color, rect.inflate(-2 * settings.BLOCK_STEP, 0))
+    pygame.draw.rect(surface, color, rect.inflate(0, -2 * settings.BLOCK_STEP))
     font = load_font(settings.BLOCK_FONT_SIZE)
     label = font.render(settings.BLOCK_LABELS[kind], True, settings.BLOCK_TEXT_COLOR)
     surface.blit(label, label.get_rect(midleft=(rect.left + settings.BLOCK_TEXT_PADDING, rect.centery)))
