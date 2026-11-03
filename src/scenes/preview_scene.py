@@ -45,12 +45,6 @@ class PreviewScene(BaseScene):
     def back(self):
         self.game.change_scene(menu_scene.MenuScene(self.game, self.session))
 
-    def handle_event(self, event: pygame.event.Event):
-        self.forward_event(event)
-
-    def update(self, dt: float):
-        self.update_ui(dt)
-
     def draw(self, surface: pygame.Surface):
         surface.fill(settings.BG_COLOR)
         self.map_view.draw(surface, self.session.pellets_in_play)

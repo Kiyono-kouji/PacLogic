@@ -5,7 +5,7 @@ from itertools import count
 
 from src.core import settings
 from src.logic.bfs_search import maze_heuristic, plan_bfs
-from src.logic.grid import Level, bfs_dist, manhattan
+from src.logic.grid import Level, manhattan, maze_distances
 from src.logic.search_core import SearchResult, elapsed_ms, make_goal_test, make_successors, rebuild_path
 
 ASTAR = "A*"
@@ -14,7 +14,7 @@ BFS = "BFS"
 ALGORITHMS = (ASTAR, GREEDY, BFS)
 
 
-def best_first(start: tuple, is_goal, successors, h, g_weight: int = 1) -> SearchResult:
+def best_first(start: tuple, is_goal, successors, h, use_path_cost: bool = True) -> SearchResult:
     started = time.perf_counter()
     order = count()
     best_g = {start: 0}
@@ -41,7 +41,8 @@ def best_first(start: tuple, is_goal, successors, h, g_weight: int = 1) -> Searc
                 best_g[next_state] = g
                 parents[next_state] = (state, direction)
                 next_h = h(next_state)
-                heapq.heappush(frontier, (g_weight * g + next_h, next_h, next(order), next_state))
+                priority = g + next_h if use_path_cost else next_h
+                heapq.heappush(frontier, (priority, next_h, next(order), next_state))
         max_frontier = max(max_frontier, len(frontier))
     return SearchResult([], None, expanded, max_frontier, elapsed_ms(started))
 
@@ -72,8 +73,8 @@ def _ghost_reach(level: Level, ghost: tuple) -> set:
     return reached
 
 
-def _reachable(level: Level, position: tuple, blocked: frozenset) -> dict:
-    return bfs_dist(level, position, blocked) if blocked else {tile: 0 for tile in level.floor_tiles}
+def _reachable_tiles(level: Level, position: tuple, blocked: frozenset) -> frozenset:
+    return frozenset(maze_distances(level, position, blocked)) if blocked else level.floor_tiles
 
 
 def danger_map(level: Level, ghosts) -> dict:
@@ -99,12 +100,12 @@ def plan(
         return plan_bfs(level, position, pellets, pellet_mode)
     started = time.perf_counter()
     start = (position, frozenset(pellets) if pellet_mode else frozenset())
-    reachable = _reachable(level, position, frozenset(blocked))
+    reachable = _reachable_tiles(level, position, frozenset(blocked))
     if any(target not in reachable for target in (level.goal, *start[1])):
         return SearchResult([], None, 0, 0, elapsed_ms(started))
     successors = make_successors(level, frozenset(blocked), danger or {})
-    g_weight = 1 if algorithm == ASTAR else 0
-    return best_first(start, make_goal_test(level), successors, heuristic_for(level, pellet_mode), g_weight)
+    use_path_cost = algorithm == ASTAR
+    return best_first(start, make_goal_test(level), successors, heuristic_for(level, pellet_mode), use_path_cost)
 
 
 def plan_to_pellet(
@@ -115,7 +116,7 @@ def plan_to_pellet(
     danger: dict | None = None,
 ) -> SearchResult:
     remaining = frozenset(pellets)
-    reachable = _reachable(level, position, frozenset(blocked))
+    reachable = _reachable_tiles(level, position, frozenset(blocked))
     if not any(pellet in reachable for pellet in remaining):
         return SearchResult([], None, 0, 0, 0.0)
     successors = make_successors(level, frozenset(blocked), danger or {})

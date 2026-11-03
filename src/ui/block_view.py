@@ -11,7 +11,7 @@ KINDS = {WAIT: "wait", REPEAT: "repeat", START: "when-start"}
 
 def block_kind(block: dict) -> str:
     if block["type"] == MOVE:
-        return MOVE_KINDS[block["dir"]]
+        return MOVE_KINDS[block["direction"]]
     return KINDS[block["type"]]
 
 
@@ -62,10 +62,10 @@ def draw_block(surface: pygame.Surface, block: dict, position: tuple[int, int], 
     font = load_font(settings.BLOCK_FONT_SIZE)
     label = font.render(settings.BLOCK_LABELS[kind], True, settings.BLOCK_TEXT_COLOR)
     surface.blit(label, label.get_rect(midleft=(rect.left + settings.BLOCK_TEXT_PADDING, rect.centery)))
-    if typing is None and "n" not in block:
+    if typing is None and "count" not in block:
         return
     count = font.render(
-        str(block["n"]) if typing is None else typing + "_",
+        str(block["count"]) if typing is None else typing + "_",
         True,
         settings.BLOCK_TEXT_COLOR if typing is None else settings.BLOCK_TYPING_COLOR,
     )

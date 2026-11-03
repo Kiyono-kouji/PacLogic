@@ -9,7 +9,7 @@ ESCAPED = "escaped"
 BLOCKED = "blocked"
 
 
-def idle(sim=None, index: int = 0) -> Iterator[None]:
+def idle() -> Iterator[None]:
     while True:
         yield None
 
@@ -26,13 +26,11 @@ class Sim:
         self.level = level
         self.brain = brain
         self.pellet_mode = pellet_mode
-        self.ghost_count = ghost_count
-        self.pac: tuple[int, int] = level.start
-        self.pac_dir: str = "R"
-        self.ghosts: list[tuple[int, int]] = list(level.ghosts[:ghost_count])
-        self.facing: list[str] = ["D"] * len(self.ghosts)
-        self.previous_pac: tuple[int, int] = self.pac
-        self.previous_ghosts: list[tuple[int, int]] = list(self.ghosts)
+        self.pac_tile: tuple[int, int] = level.start
+        self.pac_direction: str = "R"
+        self.previous_pac_tile: tuple[int, int] = self.pac_tile
+        self.ghost_tiles: list[tuple[int, int]] = list(level.ghosts[:ghost_count])
+        self.ghost_directions: list[str] = ["D"] * len(self.ghost_tiles)
         self.pellets: set[tuple[int, int]] = set(level.pellets) if pellet_mode else set()
         self.tick: int = 0
         self.status: str = RUNNING
@@ -42,45 +40,42 @@ class Sim:
         self.controllers: list[Iterator] = [
             controllers[i]
             if controllers and i < len(controllers) and controllers[i] is not None
-            else idle(self, i)
-            for i in range(len(self.ghosts))
+            else idle()
+            for i in range(len(self.ghost_tiles))
         ]
 
     def ghost_can_enter(self, tile: tuple[int, int]) -> bool:
         return self.level.passable(tile) and tile not in self.level.safe_zone
 
     def is_caught(self) -> bool:
-        return any(ghost in (self.pac, self.previous_pac) for ghost in self.ghosts)
+        return any(ghost in (self.pac_tile, self.previous_pac_tile) for ghost in self.ghost_tiles)
 
     def step(self):
         if self.status != RUNNING:
             return
-        self.previous_pac = self.pac
-        self.previous_ghosts = list(self.ghosts)
+        self.previous_pac_tile = self.pac_tile
         for i, controller in enumerate(self.controllers):
             action = next(controller, None)
             if action in DIRECTIONS:
-                self.facing[i] = action
-                next_tile = move(self.ghosts[i], action)
+                self.ghost_directions[i] = action
+                next_tile = move(self.ghost_tiles[i], action)
                 if self.ghost_can_enter(next_tile):
-                    self.ghosts[i] = next_tile
+                    self.ghost_tiles[i] = next_tile
         pac_move = self.brain.next_move(
-            self.pac, frozenset(self.pellets), tuple(self.ghosts)
+            self.pac_tile, frozenset(self.pellets), tuple(self.ghost_tiles)
         )
         if pac_move in DIRECTIONS:
-            self.pac_dir = pac_move
-            next_pac = move(self.pac, pac_move)
-            if self.level.passable(next_pac):
-                self.pac = next_pac
-        elif isinstance(pac_move, tuple) and self.level.passable(pac_move):
-            self.pac = pac_move
+            self.pac_direction = pac_move
+            next_pac_tile = move(self.pac_tile, pac_move)
+            if self.level.passable(next_pac_tile):
+                self.pac_tile = next_pac_tile
         self.tick += 1
         if self.is_caught():
             self.status = CAUGHT
             return
-        if self.pac in self.pellets:
-            self.pellets.discard(self.pac)
-        if self.pac == self.level.goal and (
+        if self.pac_tile in self.pellets:
+            self.pellets.discard(self.pac_tile)
+        if self.pac_tile == self.level.goal and (
             not self.pellet_mode or len(self.pellets) == 0
         ):
             self.status = ESCAPED

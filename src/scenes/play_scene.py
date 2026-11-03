@@ -16,7 +16,7 @@ from src.ui.panel import Panel
 class PlayScene(BaseScene):
     def __init__(self, game, session):
         super().__init__(game, session)
-        controllers = [blocks.run(tree, None, index) for index, tree in enumerate(session.trees)]
+        controllers = [blocks.run(program) for program in session.parsed_programs]
         self.sim = session.new_sim(controllers)
         self.board = Board(session.level, pygame.Rect(settings.PLAY_MAP_RECT), session.ghost_count)
         self.paused = False
@@ -48,9 +48,9 @@ class PlayScene(BaseScene):
 
     def route_preview(self) -> list:
         sim = self.sim
-        if not self.session.config["preview"] or sim.status != RUNNING:
+        if not self.session.config["show_route"] or sim.status != RUNNING:
             return []
-        costs = route_costs(sim.level, sim.pac, sim.pellets, sim.pellet_mode, sim.brain.route)
+        costs = route_costs(sim.level, sim.pac_tile, sim.pellets, sim.pellet_mode, sim.brain.route)
         steps_taken = 0 if sim.brain.config["replan"] else sim.tick
         return [(tile, g + steps_taken, h) for tile, g, h in costs]
 

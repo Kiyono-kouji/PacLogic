@@ -2,7 +2,7 @@ import math
 
 from src.core import settings
 from src.logic.bfs_search import distance_table
-from src.logic.grid import Level, bfs_dist, move
+from src.logic.grid import Level, maze_distances, move
 from src.logic.search import ASTAR, danger_map, plan, plan_to_pellet
 from src.logic.search_core import SearchResult
 
@@ -16,7 +16,7 @@ class PacManBrain:
         self.algorithm = algorithm
         self.plans_made = 0
         self.nodes_expanded = 0
-        self.last_ms = 0.0
+        self.last_search_ms = 0.0
         self.slowest_ms = 0.0
         first = self.make_plan(level.start, level.pellets)
         self.optimal_cost = first.cost
@@ -26,7 +26,7 @@ class PacManBrain:
     def record(self, result: SearchResult) -> SearchResult:
         self.plans_made += 1
         self.nodes_expanded += result.expanded
-        self.last_ms = result.ms
+        self.last_search_ms = result.ms
         self.slowest_ms = max(self.slowest_ms, result.ms)
         return result
 
@@ -59,7 +59,7 @@ class PacManBrain:
         return result.cost is not None
 
     def hold_move(self, position: tuple, pellets: frozenset, ghosts: tuple) -> str | None:
-        ghost_distances = [bfs_dist(self.level, ghost, self.level.safe_zone) for ghost in ghosts]
+        ghost_distances = [maze_distances(self.level, ghost, self.level.safe_zone) for ghost in ghosts]
         targets = pellets if self.pellet_mode and pellets else (self.level.goal,)
         target_distances = [distance_table(self.level, target) for target in targets]
 

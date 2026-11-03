@@ -35,7 +35,7 @@ def check_corridor_same_tile():
     level = parse_level(text, "easy")
     brain = TestBrain(["R"])
     sim = Sim(level, brain, False, 1, [ghost_controller([])])
-    sim.ghosts[0] = (level.start[0] + 1, level.start[1])
+    sim.ghost_tiles[0] = (level.start[0] + 1, level.start[1])
     sim.step()
     assert sim.status == CAUGHT
     assert sim.is_caught()
@@ -46,7 +46,7 @@ def check_corridor_tile_swap():
     level = parse_level(text, "easy")
     brain = TestBrain(["R"])
     sim = Sim(level, brain, False, 1, [ghost_controller(["L"])])
-    sim.ghosts[0] = (level.start[0] + 1, level.start[1])
+    sim.ghost_tiles[0] = (level.start[0] + 1, level.start[1])
     sim.step()
     assert sim.status == CAUGHT
     assert sim.is_caught()

@@ -105,7 +105,7 @@ class ProgramEditor(Component):
     def confirm_count(self):
         block = self.program[self.typing_index]
         if self.typed.isdigit() and blocks.valid_count(block["type"], int(self.typed)):
-            block["n"] = int(self.typed)
+            block["count"] = int(self.typed)
         else:
             low, high = blocks.COUNT_RANGES[block["type"]]
             self.flash.show(f"Enter a number from {low} to {high}")

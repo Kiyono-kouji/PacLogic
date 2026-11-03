@@ -4,15 +4,15 @@ from src.logic import blocks
 
 
 def _move(direction: str, depth: int = 0) -> dict:
-    return {"type": blocks.MOVE, "dir": direction, "depth": depth}
+    return {"type": blocks.MOVE, "direction": direction, "depth": depth}
 
 
 def _wait(count: int, depth: int = 0) -> dict:
-    return {"type": blocks.WAIT, "n": count, "depth": depth}
+    return {"type": blocks.WAIT, "count": count, "depth": depth}
 
 
 def _repeat(count: int, depth: int = 0) -> dict:
-    return {"type": blocks.REPEAT, "n": count, "depth": depth}
+    return {"type": blocks.REPEAT, "count": count, "depth": depth}
 
 
 EXIT_GUARD = [_repeat(9), _move("R", 1), _move("D", 1)]
@@ -47,7 +47,7 @@ def programs_for(difficulty: str, ghost_count: int) -> list:
 
 
 def controllers_for(difficulty: str, ghost_count: int) -> list:
-    return [blocks.run(blocks.parse(program), None, index) for index, program in enumerate(programs_for(difficulty, ghost_count))]
+    return [blocks.run(blocks.parse(program)) for program in programs_for(difficulty, ghost_count)]
 
 
 def check_programs():
@@ -59,8 +59,8 @@ def check_programs():
             for index, block in enumerate(program):
                 low, high = blocks.depth_range(program[:index], index)
                 assert low <= block["depth"] <= high, (difficulty, index)
-                if "n" in block:
-                    assert blocks.valid_count(block["type"], block["n"]), (difficulty, block)
+                if "count" in block:
+                    assert blocks.valid_count(block["type"], block["count"]), (difficulty, block)
             assert blocks.parse(program), difficulty
 
 
@@ -68,7 +68,7 @@ def play_rounds():
     for difficulty_index, difficulty in enumerate(settings.DIFFICULTIES):
         for level_index, level_file in enumerate(settings.LEVEL_FILES):
             session = Session()
-            session.options.update(level=level_index, ai=difficulty_index, ghosts=settings.MAX_GHOSTS - 1)
+            session.options.update(level=level_index, difficulty=difficulty_index, ghosts=settings.MAX_GHOSTS - 1)
             session.prepare()
             sim = session.new_sim(controllers_for(difficulty, session.ghost_count))
             print(f"{difficulty:<7}{level_file:<12}{sim.run():<9}tick {sim.tick}/{sim.tick_cap}")
