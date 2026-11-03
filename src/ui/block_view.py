@@ -38,7 +38,7 @@ def draw_block(surface: pygame.Surface, block: dict, position: tuple[int, int], 
     if typing is None and "n" not in block:
         return
     count = font.render(
-        str(block["n"]) if typing is None else typing,
+        str(block["n"]) if typing is None else typing + "_",
         True,
         settings.BLOCK_TEXT_COLOR if typing is None else settings.BLOCK_TYPING_COLOR,
     )
