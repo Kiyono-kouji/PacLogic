@@ -4,7 +4,7 @@ from src.core import settings
 from src.core.session import Session
 from src.scenes.base_scene import BaseScene
 from src.scenes.menu_scene import MenuScene
-from src.scenes.tutorial_slides import make_slides
+from src.scenes.tutorial_slides import load_tutorial_slides
 from src.ui.tutorial_button import TutorialButton
 from src.ui.tutorial_panel import TutorialPanel
 
@@ -19,7 +19,7 @@ class Game:
         self.clock: pygame.time.Clock = pygame.time.Clock()
         self.session: Session = Session()
         self.scene: BaseScene = MenuScene(self, self.session)
-        self.tutorial: TutorialPanel = TutorialPanel(lambda: make_slides(self))
+        self.tutorial: TutorialPanel = TutorialPanel(load_tutorial_slides)
         self.tutorial_button: TutorialButton = TutorialButton(self.tutorial.open)
         self.running: bool = True
 

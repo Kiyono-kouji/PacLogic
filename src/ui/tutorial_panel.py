@@ -5,27 +5,6 @@ from src.ui.button import Button
 from src.ui.component import Component
 from src.ui.label import Label
 from src.ui.panel import Panel
-
-
-def highlighted_screenshot(screenshot: pygame.Surface, highlight: pygame.Rect) -> pygame.Surface:
-    image_rect = pygame.Rect(settings.TUTORIAL_IMAGE_RECT)
-    scale = image_rect.width / screenshot.get_width()
-    image = pygame.transform.smoothscale(screenshot, image_rect.size)
-    padding = settings.TUTORIAL_HIGHLIGHT_PADDING
-    box = pygame.Rect(
-        round(highlight.x * scale) - padding,
-        round(highlight.y * scale) - padding,
-        round(highlight.width * scale) + 2 * padding,
-        round(highlight.height * scale) + 2 * padding,
-    )
-    shade = pygame.Surface(image_rect.size, pygame.SRCALPHA)
-    shade.fill(settings.TUTORIAL_SHOT_DIM_COLOR)
-    shade.fill((0, 0, 0, 0), box)
-    image.blit(shade, (0, 0))
-    pygame.draw.rect(image, settings.TUTORIAL_HIGHLIGHT_COLOR, box, settings.TUTORIAL_HIGHLIGHT_WIDTH)
-    return image
-
-
 class TutorialPanel(Component):
     def __init__(self, make_slides):
         super().__init__()
@@ -45,7 +24,7 @@ class TutorialPanel(Component):
 
     def open(self):
         if not self.slides:
-            self.slides = [(text, highlighted_screenshot(shot, area)) for text, shot, area in self.make_slides()]
+            self.slides = self.make_slides()
         self.visible = True
         self.show(0)
 

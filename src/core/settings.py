@@ -7,6 +7,7 @@ LEVELS_DIR = ASSETS_DIR / "levels"
 
 DEFAULT_FONT = FONTS_DIR / "Jersey10-Regular.ttf"
 SPRITES_DIR = ASSETS_DIR / "images" / "sprites"
+TUTORIAL_IMAGES_DIR = ASSETS_DIR / "images" / "tutorial"
 
 TITLE = "PacLogic"
 SCREEN_WIDTH = 1280
