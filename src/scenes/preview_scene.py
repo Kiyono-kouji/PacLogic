@@ -3,17 +3,16 @@ import pygame
 from src.core import settings
 from src.scenes import menu_scene, plan_scene
 from src.scenes.base_scene import BaseScene
-from src.ui.board import Board
 from src.ui.button import Button
 from src.ui.label import Label
+from src.ui.map_view import MapView
 from src.ui.panel import Panel
 
 
 class PreviewScene(BaseScene):
     def __init__(self, game, session):
         super().__init__(game, session)
-        self.board = Board(session.level, pygame.Rect(settings.PREVIEW_MAP_RECT), session.ghost_count)
-        self.route = session.route if session.config["preview"] else []
+        self.map_view = MapView(session.level, pygame.Rect(settings.PREVIEW_MAP_RECT))
         panel = Panel(settings.PREVIEW_PANEL_RECT)
         self.ui = [
             Label("Preview", settings.PREVIEW_TITLE_POSITION, settings.FONT_LARGE),
@@ -29,7 +28,6 @@ class PreviewScene(BaseScene):
             ("Level", session.option_text("level")),
             ("Mode", session.option_text("mode")),
             ("Difficulty", session.difficulty),
-            ("Optimal cost", str(session.optimal_cost)),
         ]
 
     def info_labels(self, panel_rect: pygame.Rect) -> list:
@@ -55,5 +53,5 @@ class PreviewScene(BaseScene):
 
     def draw(self, surface: pygame.Surface):
         surface.fill(settings.BG_COLOR)
-        self.board.draw(surface, self.session.pellets_in_play, self.route)
+        self.map_view.draw(surface, self.session.pellets_in_play)
         self.draw_ui(surface)
