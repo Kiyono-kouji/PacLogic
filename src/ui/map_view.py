@@ -47,7 +47,7 @@ class MapView(Component):
         return marker
 
     def render_background(self, size: tuple) -> pygame.Surface:
-        background = pygame.Surface(size)
+        background = pygame.Surface(size, pygame.SRCALPHA)
         background.fill(settings.MAP_FLOOR_COLOR)
         for wall in self.level.walls:
             self.draw_wall(background, wall)
