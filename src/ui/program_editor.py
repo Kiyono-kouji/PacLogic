@@ -42,12 +42,17 @@ class ProgramEditor(Component):
     def block_at(self, position: tuple[int, int]) -> int | None:
         if not self.program_panel.rect.collidepoint(position):
             return None
-        index = (position[1] - self.origin()[1]) // settings.BLOCK_HEIGHT
-        return index if 0 <= index < len(self.program) else None
+        y = position[1] - self.origin()[1]
+        tops, feet, _ = block_view.program_layout(self.program)
+        rows = [(top, settings.BLOCK_HEIGHT, index) for index, top in enumerate(tops)]
+        rows += [(top, settings.BLOCK_FOOT_HEIGHT, index) for index, top in feet.items()]
+        return next((index for top, height, index in rows if top <= y < top + height), None)
 
     def insertion_index(self, position: tuple[int, int]) -> int:
-        offset = position[1] - self.origin()[1] + settings.BLOCK_HEIGHT // 2
-        return max(0, min(len(self.program), offset // settings.BLOCK_HEIGHT))
+        y = position[1] - self.origin()[1]
+        tops, _, _ = block_view.program_layout(self.program)
+        gaps = [0] + [top + settings.BLOCK_HEIGHT for top in tops]
+        return min(range(len(gaps)), key=lambda index: abs(y - gaps[index]))
 
     def press(self, position: tuple[int, int]) -> bool:
         for rect, template in self.palette_slots:
@@ -125,7 +130,7 @@ class ProgramEditor(Component):
             self.typed += event.unicode
 
     def scroll_by(self, steps: int):
-        content = (len(self.program) + 1) * settings.BLOCK_HEIGHT + 2 * settings.EDITOR_PADDING
+        content = block_view.program_layout(self.program)[2] + settings.BLOCK_HEIGHT + 2 * settings.EDITOR_PADDING
         limit = max(0, content - self.program_panel.rect.height)
         self.scroll = max(0, min(limit, self.scroll - steps * settings.SCROLL_STEP))
 
