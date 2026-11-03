@@ -1,7 +1,7 @@
 import csv
-from collections import deque
 from statistics import median
 
+from scripts.check_optimal import true_costs_left
 from scripts.levels_for_evaluation import evaluation_levels
 from src.core import settings
 from src.logic.grid import Level
@@ -33,23 +33,6 @@ def evaluation_rows() -> list[dict]:
             row.update(optimal_cost=optimal_cost, optimal=values["cost"] == optimal_cost)
             rows.append(row)
     return rows
-
-
-def true_costs_left(level: Level, pellet_mode: bool) -> dict:
-    pellets = level.pellets if pellet_mode else frozenset()
-    goal = (level.goal, frozenset())
-    costs = {goal: 0}
-    frontier = deque([goal])
-    while frontier:
-        tile, remaining = frontier.popleft()
-        befores = [remaining, remaining | {tile}] if tile in pellets else [remaining]
-        for _, previous_tile in level.adjacency[tile]:
-            for before in befores:
-                previous = (previous_tile, before)
-                if previous_tile not in before and previous not in costs:
-                    costs[previous] = costs[(tile, remaining)] + 1
-                    frontier.append(previous)
-    return costs
 
 
 def heuristic_checks() -> list[dict]:

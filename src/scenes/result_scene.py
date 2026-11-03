@@ -1,24 +1,18 @@
 import pygame
 
 from src.core import settings
-from src.logic.sim import BLOCKED, CAUGHT, ESCAPED, score_breakdown, total_score
+from src.logic.sim import score_breakdown, total_score
 from src.scenes import menu_scene, preview_scene
 from src.scenes.base_scene import BaseScene
 from src.ui.button import Button
+from src.ui.hud import OUTCOME_TEXT
 from src.ui.label import Label
 from src.ui.panel import Panel
-
-OUTCOME_TITLES = {
-    CAUGHT: ("Caught! Ghosts win", settings.ACCENT_COLOR),
-    ESCAPED: ("Escaped! Pac-Man wins", settings.WARNING_COLOR),
-    BLOCKED: ("Blocked: out of ticks", settings.TEXT_COLOR),
-}
-
 
 class ResultScene(BaseScene):
     def __init__(self, game, session, sim):
         super().__init__(game, session)
-        title, color = OUTCOME_TITLES[sim.status]
+        title, color = OUTCOME_TEXT[sim.status]
         breakdown = score_breakdown(sim, session.seconds_left)
         rows = [*breakdown.items(), ("Total", total_score(breakdown))]
         self.ui = [
@@ -51,12 +45,6 @@ class ResultScene(BaseScene):
 
     def back_to_menu(self):
         self.game.change_scene(menu_scene.MenuScene(self.game, self.session))
-
-    def handle_event(self, event: pygame.event.Event):
-        self.forward_event(event)
-
-    def update(self, dt: float):
-        self.update_ui(dt)
 
     def draw(self, surface: pygame.Surface):
         surface.fill(settings.BG_COLOR)

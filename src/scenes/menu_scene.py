@@ -10,7 +10,7 @@ from src.ui.panel import Panel
 
 OPTION_NAMES = {
     "level": "Level",
-    "ai": "AI",
+    "difficulty": "AI",
     "ghosts": "Ghosts",
     "mode": "Mode",
     "time": "Planning time",
@@ -91,9 +91,6 @@ class MenuScene(BaseScene):
             self.close_setup()
             return
         self.forward_event(event)
-
-    def update(self, dt: float):
-        self.update_ui(dt)
 
     def draw(self, surface: pygame.Surface):
         surface.fill(settings.BG_COLOR)

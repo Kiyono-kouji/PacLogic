@@ -6,7 +6,7 @@ from scripts.levels_for_evaluation import evaluation_levels
 from scripts.sample_programs import controllers_for
 from src.core import settings
 from src.logic.brain import PacManBrain
-from src.logic.grid import Level, bfs_dist, move
+from src.logic.grid import Level, maze_distances, move
 from src.logic.sim import BLOCKED, CAUGHT, ESCAPED, Sim
 
 RESULTS_FILE = settings.ROOT_DIR / "results" / "danger_tuning.csv"
@@ -18,7 +18,7 @@ OUTCOMES = (CAUGHT, ESCAPED, BLOCKED)
 
 
 def _path_moves(level: Level, start: tuple, goal: tuple) -> list:
-    distances = bfs_dist(level, goal, level.safe_zone)
+    distances = maze_distances(level, goal, level.safe_zone)
     if start not in distances:
         return []
     moves, tile = [], start
@@ -47,7 +47,7 @@ def interceptor_controllers(level: Level, pellet_mode: bool, ghost_count: int, o
     route = _planned_tiles(level, pellet_mode)
     controllers = []
     for index, ghost in enumerate(level.ghosts[:ghost_count]):
-        reach = bfs_dist(level, ghost, level.safe_zone)
+        reach = maze_distances(level, ghost, level.safe_zone)
         targets = [
             tile for step, tile in enumerate(route)
             if tile not in level.safe_zone and reach.get(tile, math.inf) <= step
@@ -64,7 +64,7 @@ def play(level: Level, difficulty: str, pellet_mode: bool, ghost_count: int, con
 
 
 def walked_into_ghost(sim: Sim) -> bool:
-    return sim.status == CAUGHT and sim.pac != sim.previous_pac and sim.pac in sim.ghosts and sim.previous_pac not in sim.ghosts
+    return sim.status == CAUGHT and sim.pac_tile != sim.previous_pac_tile and sim.pac_tile in sim.ghost_tiles and sim.previous_pac_tile not in sim.ghost_tiles
 
 
 def opponent_rounds(difficulty: str) -> dict:

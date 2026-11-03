@@ -1,7 +1,7 @@
 import pygame
 
-from src.entities.enemy import Enemy
-from src.entities.player import Player
+from src.entities.ghost import Ghost
+from src.entities.pac_man import PacMan
 from src.logic.grid import Level
 from src.ui.component import Component
 from src.ui.map_view import MapView
@@ -11,43 +11,33 @@ class Board(Component):
     def __init__(self, level: Level, area: pygame.Rect, ghost_count: int):
         super().__init__()
         self.level = level
-        self.ghost_count = ghost_count
         self.map_view = MapView(level, area)
-        self.player = Player()
-        self.enemies = [Enemy(index) for index in range(ghost_count)]
-        self.selected_ghost = None
+        self.pac_man = PacMan(self.map_view)
+        self.ghosts = [Ghost(self.map_view, index) for index in range(ghost_count)]
         self.show_start()
 
-    def place(self, character, tile: tuple, direction: str):
-        character.place(tile, direction, self.map_view)
-
     def show_start(self):
-        self.pac_tile = self.level.start
-        self.ghost_tiles = list(self.level.ghosts[:self.ghost_count])
-        self.place(self.player, self.pac_tile, self.player.direction)
-        for enemy, tile in zip(self.enemies, self.ghost_tiles):
-            self.place(enemy, tile, enemy.direction)
+        self.pac_man.place(self.level.start, self.pac_man.direction)
+        for ghost, tile in zip(self.ghosts, self.level.ghosts):
+            ghost.place(tile, ghost.direction)
 
     def show_sim(self, sim):
-        self.pac_tile = sim.pac
-        self.ghost_tiles = list(sim.ghosts)
-        self.place(self.player, sim.pac, sim.pac_dir)
-        for enemy, tile, direction in zip(self.enemies, sim.ghosts, sim.facing):
-            self.place(enemy, tile, direction)
+        self.pac_man.place(sim.pac_tile, sim.pac_direction)
+        for ghost, tile, direction in zip(self.ghosts, sim.ghost_tiles, sim.ghost_directions):
+            ghost.place(tile, direction)
 
     def select_ghost(self, index: int | None):
-        self.selected_ghost = index
-        for enemy in self.enemies:
-            enemy.selected = enemy.index == index
+        for ghost in self.ghosts:
+            ghost.selected = ghost.index == index
 
     def ghost_at(self, mouse_position: tuple) -> int | None:
         tile = self.map_view.tile_at(mouse_position)
-        return self.ghost_tiles.index(tile) if tile in self.ghost_tiles else None
+        return next((ghost.index for ghost in self.ghosts if ghost.tile == tile), None)
 
     def draw(self, surface: pygame.Surface, pellets=None, route=()):
         route = list(route)
         self.map_view.draw(surface, pellets, [tile for tile, _, _ in route])
         self.map_view.draw_costs(surface, route)
-        for enemy in self.enemies:
-            enemy.draw(surface)
-        self.player.draw(surface)
+        for ghost in self.ghosts:
+            ghost.draw(surface)
+        self.pac_man.draw(surface)

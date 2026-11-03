@@ -2,13 +2,13 @@ import time
 from collections import deque
 from functools import lru_cache
 
-from src.logic.grid import Level, bfs_dist
+from src.logic.grid import Level, maze_distances
 from src.logic.search_core import SearchResult, elapsed_ms, make_goal_test, make_successors, rebuild_path
 
 
 @lru_cache(maxsize=None)
 def distance_table(level: Level, source: tuple) -> dict:
-    return bfs_dist(level, source)
+    return maze_distances(level, source)
 
 
 def maze_heuristic(level: Level):

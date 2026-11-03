@@ -10,10 +10,10 @@ class BaseScene:
         self.ui: list[Component] = []
 
     def handle_event(self, event: pygame.event.Event):
-        raise NotImplementedError
+        self.forward_event(event)
 
     def update(self, dt: float):
-        raise NotImplementedError
+        self.update_ui(dt)
 
     def draw(self, surface: pygame.Surface):
         raise NotImplementedError

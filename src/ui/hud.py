@@ -7,11 +7,11 @@ from src.logic.sim import BLOCKED, CAUGHT, ESCAPED, RUNNING
 from src.ui.component import Component
 from src.ui.label import Label
 
-STATUS_TEXT = {
+OUTCOME_TEXT = {
     RUNNING: ("Running", settings.TEXT_COLOR),
     CAUGHT: ("Caught! Ghosts win", settings.ACCENT_COLOR),
     ESCAPED: ("Escaped! Pac-Man wins", settings.WARNING_COLOR),
-    BLOCKED: ("Blocked: out of ticks", settings.TEXT_DIM_COLOR),
+    BLOCKED: ("Blocked: out of ticks", settings.TEXT_COLOR),
 }
 
 
@@ -32,7 +32,7 @@ class HUD(Component):
         }
 
     def refresh(self, sim, paused: bool = False):
-        text, color = ("Paused", settings.ACCENT_COLOR) if paused and sim.status == RUNNING else STATUS_TEXT[sim.status]
+        text, color = ("Paused", settings.ACCENT_COLOR) if paused and sim.status == RUNNING else OUTCOME_TEXT[sim.status]
         self.status_label.set_text(text, color)
         brain = sim.brain
         values = {
@@ -42,7 +42,7 @@ class HUD(Component):
             "Algorithm": f"{brain.algorithm} ({brain.difficulty})",
             "Plans made": str(brain.plans_made),
             "Nodes expanded": str(brain.nodes_expanded),
-            "Last search": f"{brain.last_ms:.2f} ms",
+            "Last search": f"{brain.last_search_ms:.2f} ms",
         }
         for name, label in self.value_labels.items():
             label.set_text(f"{name}: {values[name]}")

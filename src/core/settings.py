@@ -15,8 +15,6 @@ FPS = 60
 MAX_DT = 0.05
 BG_COLOR = (10, 10, 20)
 
-DEFAULT_TILE_SIZE = 32
-
 FONT_SMALL = 24
 FONT_MEDIUM = 32
 FONT_LARGE = 56
@@ -37,15 +35,15 @@ DANGER_RADIUS = 2
 DANGER_PENALTY = 4
 
 DIFFICULTIES = {
-    "Easy": {"replan": False, "preview": True, "block_limit": 16},
-    "Medium": {"replan": False, "preview": False, "block_limit": 20},
-    "Hard": {"replan": True, "preview": False, "block_limit": 24},
+    "Easy": {"replan": False, "show_route": True, "block_limit": 16},
+    "Medium": {"replan": False, "show_route": False, "block_limit": 20},
+    "Hard": {"replan": True, "show_route": False, "block_limit": 24},
 }
 
 LEVEL_FILES = ("easy.txt", "medium.txt", "hard.txt")
 WIN_MODES = (("Exit", False), ("Pellets", True))
 PLANNING_TIMES = (60, 90, 120, 180)
-OPTION_DEFAULTS = {"level": 0, "ai": 0, "ghosts": 3, "mode": 0, "time": 1}
+OPTION_DEFAULTS = {"level": 0, "difficulty": 0, "ghosts": 3, "mode": 0, "time": 1}
 
 TICK_CAP_FACTOR = 3
 TICK_CAP_BONUS = 20
@@ -91,7 +89,7 @@ WAIT_MIN = 1
 WAIT_MAX = 9
 REPEAT_MIN = 2
 REPEAT_MAX = 9
-OP_CAP = 100
+MAX_STEPS_WITHOUT_ACTION = 100
 
 BLOCK_WIDTH = 150
 BLOCK_HEIGHT = 34

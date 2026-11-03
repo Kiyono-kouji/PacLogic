@@ -1,15 +1,15 @@
 from typing import Iterator
 
 from src.core import settings
-from src.logic.sim import Sim, idle
+from src.logic.sim import idle
 
 MOVE = "MOVE"
 WAIT = "WAIT"
 REPEAT = "REPEAT"
 
-PALETTE = tuple({"type": MOVE, "dir": direction} for direction in settings.MOVE_ORDER) + (
-    {"type": WAIT, "n": settings.WAIT_MIN},
-    {"type": REPEAT, "n": settings.REPEAT_MIN},
+PALETTE = tuple({"type": MOVE, "direction": direction} for direction in settings.MOVE_ORDER) + (
+    {"type": WAIT, "count": settings.WAIT_MIN},
+    {"type": REPEAT, "count": settings.REPEAT_MIN},
 )
 
 COUNT_RANGES = {
@@ -60,35 +60,35 @@ def parse(program: list) -> list:
         del levels[depth + 1:]
         kind = block["type"]
         if kind == MOVE:
-            levels[depth].append({"type": MOVE, "dir": block["dir"]})
+            levels[depth].append({"type": MOVE, "direction": block["direction"]})
         elif kind == WAIT:
-            levels[depth].append({"type": WAIT, "n": _clamp_count(WAIT, block["n"])})
+            levels[depth].append({"type": WAIT, "count": _clamp_count(WAIT, block["count"])})
         elif kind == REPEAT:
-            node = {"type": REPEAT, "n": _clamp_count(REPEAT, block["n"]), "body": []}
+            node = {"type": REPEAT, "count": _clamp_count(REPEAT, block["count"]), "body": []}
             levels[depth].append(node)
             levels.append(node["body"])
     return root
 
 
-def _execute(nodes: list, ops: list) -> Iterator[str | None]:
+def _execute(nodes: list, steps_without_action: list) -> Iterator[str | None]:
     for node in nodes:
-        ops[0] += 1
-        if ops[0] >= settings.OP_CAP:
-            ops[0] = 0
+        steps_without_action[0] += 1
+        if steps_without_action[0] >= settings.MAX_STEPS_WITHOUT_ACTION:
+            steps_without_action[0] = 0
             yield None
         kind = node["type"]
         if kind == MOVE:
-            ops[0] = 0
-            yield node["dir"]
+            steps_without_action[0] = 0
+            yield node["direction"]
         elif kind == WAIT:
-            ops[0] = 0
-            for _ in range(node["n"]):
+            steps_without_action[0] = 0
+            for _ in range(node["count"]):
                 yield None
         elif kind == REPEAT:
-            for _ in range(node["n"]):
-                yield from _execute(node["body"], ops)
+            for _ in range(node["count"]):
+                yield from _execute(node["body"], steps_without_action)
 
 
-def run(tree: list, sim: Sim | None, ghost_index: int) -> Iterator[str | None]:
+def run(tree: list) -> Iterator[str | None]:
     yield from _execute(tree, [0])
-    yield from idle(sim, ghost_index)
+    yield from idle()

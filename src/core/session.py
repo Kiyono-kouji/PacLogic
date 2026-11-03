@@ -4,7 +4,7 @@ from src.logic.grid import Level, load_level
 from src.logic.route import route_costs
 from src.logic.sim import Sim
 
-OPTIONS = ("level", "ai", "ghosts", "mode", "time")
+OPTIONS = ("level", "difficulty", "ghosts", "mode", "time")
 DIFFICULTY_NAMES = tuple(settings.DIFFICULTIES)
 
 
@@ -13,11 +13,9 @@ class Session:
         self.options = dict(settings.OPTION_DEFAULTS)
         self.loaded_levels: dict = {}
         self.level: Level | None = None
-        self.route: list = []
-        self.optimal_cost: int | None = None
-        self.tick_cap: int = 0
+        self.planned_route_costs: list = []
         self.programs: list = []
-        self.trees: list = []
+        self.parsed_programs: list = []
         self.seconds_left: float = 0.0
 
     def chosen_level(self) -> Level:
@@ -32,7 +30,7 @@ class Session:
     def option_count(self, option: str) -> int:
         if option == "level":
             return len(settings.LEVEL_FILES)
-        if option == "ai":
+        if option == "difficulty":
             return len(DIFFICULTY_NAMES)
         if option == "ghosts":
             return self.max_ghosts()
@@ -47,7 +45,7 @@ class Session:
     def option_text(self, option: str) -> str:
         if option == "level":
             return self.chosen_level().name.capitalize()
-        if option == "ai":
+        if option == "difficulty":
             return self.difficulty
         if option == "ghosts":
             return str(self.ghost_count)
@@ -58,7 +56,7 @@ class Session:
 
     @property
     def difficulty(self) -> str:
-        return DIFFICULTY_NAMES[self.options["ai"]]
+        return DIFFICULTY_NAMES[self.options["difficulty"]]
 
     @property
     def config(self) -> dict:
@@ -83,16 +81,14 @@ class Session:
     def prepare(self):
         self.level = self.chosen_level()
         self.clear_programs()
-        preview = self.new_sim()
-        self.optimal_cost = preview.brain.optimal_cost
-        self.tick_cap = preview.tick_cap
-        self.route = route_costs(
-            self.level, self.level.start, self.level.pellets, self.pellet_mode, preview.brain.planned_route
+        brain = PacManBrain(self.level, self.difficulty, self.pellet_mode)
+        self.planned_route_costs = route_costs(
+            self.level, self.level.start, self.level.pellets, self.pellet_mode, brain.planned_route
         )
 
     def clear_programs(self):
         self.programs = [[] for _ in range(self.ghost_count)]
-        self.trees = [[] for _ in range(self.ghost_count)]
+        self.parsed_programs = [[] for _ in range(self.ghost_count)]
         self.seconds_left = float(self.planning_time)
 
     def new_sim(self, controllers: list | None = None) -> Sim:

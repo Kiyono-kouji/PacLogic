@@ -19,7 +19,7 @@ class PlanScene(BaseScene):
         level, ghost_count = session.level, session.ghost_count
         self.overview = Board(level, pygame.Rect(settings.PLAN_OVERVIEW_RECT), ghost_count)
         self.side_board = Board(level, pygame.Rect(settings.PLAN_SIDE_MAP_RECT), ghost_count)
-        self.route = session.route if session.config["preview"] else []
+        self.route = session.planned_route_costs if session.config["show_route"] else []
         self.flash = FlashMessage()
         self.editor = ProgramEditor(session.config["block_limit"], self.flash)
         self.title = Label("Plan your ghosts", settings.PLAN_TITLE_POSITION, settings.FONT_LARGE)
@@ -50,7 +50,7 @@ class PlanScene(BaseScene):
 
     def lock_and_run(self):
         self.editor.finish()
-        self.session.trees = [blocks.parse(program) for program in self.session.programs]
+        self.session.parsed_programs = [blocks.parse(program) for program in self.session.programs]
         self.game.change_scene(play_scene.PlayScene(self.game, self.session))
 
     def handle_event(self, event: pygame.event.Event):
