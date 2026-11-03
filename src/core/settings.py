@@ -36,8 +36,8 @@ DANGER_PENALTY = 4
 
 DIFFICULTIES = {
     "Easy": {"replan": False, "show_route": True, "block_limit": 16},
-    "Medium": {"replan": False, "show_route": False, "block_limit": 20},
-    "Hard": {"replan": True, "show_route": False, "block_limit": 24},
+    "Medium": {"replan": False, "show_route": False, "block_limit": 12},
+    "Hard": {"replan": True, "show_route": False, "block_limit": 10},
 }
 
 LEVEL_FILES = ("easy.txt", "medium.txt", "hard.txt")
