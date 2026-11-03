@@ -1,5 +1,6 @@
 __pycache__/
 venv/
+.venv/
 .DS_Store
 agents.md
 plan/
@@ -8,3 +9,4 @@ schedule.txt
 .claude/
 .githooks/
 proposal violations.md
+proposal.md
