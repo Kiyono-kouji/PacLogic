@@ -48,12 +48,9 @@ class Sim:
         return self.level.passable(tile) and tile not in self.level.safe_zone
 
     def is_caught(self) -> bool:
-        return any(ghost in (self.pac_tile, self.previous_pac_tile) for ghost in self.ghost_tiles)
+        return self.pac_tile in self.ghost_tiles
 
-    def step(self):
-        if self.status != RUNNING:
-            return
-        self.previous_pac_tile = self.pac_tile
+    def move_ghosts(self):
         for i, controller in enumerate(self.controllers):
             action = next(controller, None)
             if action in DIRECTIONS:
@@ -61,6 +58,8 @@ class Sim:
                 next_tile = move(self.ghost_tiles[i], action)
                 if self.ghost_can_enter(next_tile):
                     self.ghost_tiles[i] = next_tile
+
+    def move_pac_man(self):
         pac_move = self.brain.next_move(
             self.pac_tile, frozenset(self.pellets), tuple(self.ghost_tiles)
         )
@@ -69,6 +68,17 @@ class Sim:
             next_pac_tile = move(self.pac_tile, pac_move)
             if self.level.passable(next_pac_tile):
                 self.pac_tile = next_pac_tile
+
+    def step(self):
+        if self.status != RUNNING:
+            return
+        self.previous_pac_tile = self.pac_tile
+        self.move_ghosts()
+        if self.is_caught():
+            self.tick += 1
+            self.status = CAUGHT
+            return
+        self.move_pac_man()
         self.tick += 1
         if self.is_caught():
             self.status = CAUGHT
