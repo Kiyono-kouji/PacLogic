@@ -19,19 +19,46 @@ def block_rect(position: tuple[int, int]) -> pygame.Rect:
     return pygame.Rect(position, (settings.BLOCK_WIDTH, settings.BLOCK_HEIGHT))
 
 
+def program_layout(program: list) -> tuple[list[int], dict[int, int], int]:
+    tops, feet, open_loops, y = [], {}, [], 0
+    for index, block in enumerate(program):
+        tops.append(y)
+        y += settings.BLOCK_HEIGHT
+        if block["type"] == REPEAT:
+            open_loops.append(index)
+        next_depth = program[index + 1]["depth"] if index + 1 < len(program) else -1
+        while open_loops and program[open_loops[-1]]["depth"] >= next_depth:
+            if open_loops[-1] == index:
+                y += settings.BLOCK_FOOT_HEIGHT
+            feet[open_loops.pop()] = y
+            y += settings.BLOCK_FOOT_HEIGHT
+    return tops, feet, y
+
+
+def draw_shape(surface: pygame.Surface, color: tuple, rect: pygame.Rect):
+    pygame.draw.rect(surface, color, rect.inflate(-2 * settings.BLOCK_STEP, 0))
+    pygame.draw.rect(surface, color, rect.inflate(0, -2 * settings.BLOCK_STEP))
+
+
+def draw_tab(surface: pygame.Surface, color: tuple, left: int, top: int):
+    pygame.draw.rect(surface, color, (left + settings.BLOCK_TAB_OFFSET, top, settings.BLOCK_TAB_WIDTH, settings.BLOCK_TAB_HEIGHT))
+
+
+def draw_loop_frame(surface: pygame.Surface, position: tuple[int, int], foot_top: int):
+    color = settings.BLOCK_COLORS[KINDS[REPEAT]]
+    head = block_rect(position)
+    foot = pygame.Rect(head.left, foot_top, settings.BLOCK_WIDTH, settings.BLOCK_FOOT_HEIGHT)
+    pygame.draw.rect(surface, color, (head.left, head.centery, settings.INDENT, foot.centery - head.centery))
+    draw_shape(surface, color, foot)
+    draw_tab(surface, color, foot.left, foot.bottom)
+
+
 def draw_block(surface: pygame.Surface, block: dict, position: tuple[int, int], typing: str | None = None):
     kind = block_kind(block)
     color = settings.BLOCK_COLORS[kind]
     rect = block_rect(position)
-    tab = pygame.Rect(
-        rect.left + settings.BLOCK_TAB_OFFSET,
-        rect.bottom,
-        settings.BLOCK_TAB_WIDTH,
-        settings.BLOCK_TAB_HEIGHT,
-    )
-    pygame.draw.rect(surface, color, tab)
-    pygame.draw.rect(surface, color, rect.inflate(-2 * settings.BLOCK_STEP, 0))
-    pygame.draw.rect(surface, color, rect.inflate(0, -2 * settings.BLOCK_STEP))
+    draw_tab(surface, color, rect.left + (settings.INDENT if block["type"] == REPEAT else 0), rect.bottom)
+    draw_shape(surface, color, rect)
     font = load_font(settings.BLOCK_FONT_SIZE)
     label = font.render(settings.BLOCK_LABELS[kind], True, settings.BLOCK_TEXT_COLOR)
     surface.blit(label, label.get_rect(midleft=(rect.left + settings.BLOCK_TEXT_PADDING, rect.centery)))
@@ -52,7 +79,10 @@ def draw_program(
     typing_index: int | None = None,
     typing: str | None = None,
 ):
+    tops, feet, _ = program_layout(program)
     for index in reversed(range(len(program))):
         block = program[index]
-        position = (origin[0] + block["depth"] * settings.INDENT, origin[1] + index * settings.BLOCK_HEIGHT)
+        position = (origin[0] + block["depth"] * settings.INDENT, origin[1] + tops[index])
+        if index in feet:
+            draw_loop_frame(surface, position, origin[1] + feet[index])
         draw_block(surface, block, position, typing if index == typing_index else None)
