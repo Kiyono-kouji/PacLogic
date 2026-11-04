@@ -1,14 +1,15 @@
 import pygame
 
 from src.core import settings
+from src.core.resource_loader import load_character_sprite
 from src.logic import blocks
 from src.logic.route import route_costs
-from src.logic.sim import CAUGHT, RUNNING
+from src.logic.sim import CAUGHT, ESCAPED, RUNNING
 from src.scenes import menu_scene, result_scene
 from src.scenes.base_scene import BaseScene
 from src.ui.board import Board
 from src.ui.button import Button
-from src.ui.effects import Flash, Particles, Shake
+from src.ui.effects import CatchCamera, Flash, GhostFlyAway, Particles, Shake
 from src.ui.hud import HUD
 from src.ui.label import Label
 from src.ui.panel import Panel
@@ -35,7 +36,8 @@ class PlayScene(BaseScene):
         self.canvas = pygame.Surface((settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT))
         self.particles = Particles()
         self.shake = Shake()
-        self.catch_flash = Flash(settings.CATCH_FLASH_COLOR, settings.CATCH_FLASH_ALPHA, settings.CATCH_FLASH_SECONDS, False)
+        self.fly_away = GhostFlyAway()
+        self.camera = CatchCamera()
         self.end_flash = Flash(settings.END_FLASH_COLOR, 255, settings.END_FLASH_OUT_SECONDS, True)
         self.show_status()
 
@@ -67,14 +69,29 @@ class PlayScene(BaseScene):
         self.forward_event(event)
 
     def celebrate_catch(self):
-        self.particles.burst(self.board.map_view.tile_center(self.sim.pac_tile))
+        pac_center = self.board.map_view.tile_center(self.sim.pac_tile)
+        self.particles.burst(pac_center)
         self.shake.start()
-        self.catch_flash.start()
+        self.camera.start(pac_center)
+
+    def send_ghosts_away(self):
+        tile_size = self.board.map_view.tile_size
+        self.fly_away.start(
+            [
+                (
+                    load_character_sprite(f"ghosts/{ghost.folder}/move-up/move-up-1.png", tile_size),
+                    self.board.map_view.tile_center(ghost.tile),
+                )
+                for ghost in self.board.ghosts
+            ]
+        )
+        self.board.ghosts_visible = False
 
     def update_effects(self, dt: float):
         self.particles.update(dt)
+        self.fly_away.update(dt)
         self.shake.update(dt)
-        self.catch_flash.update(dt)
+        self.camera.update(dt)
         self.end_flash.update(dt)
 
     def update(self, dt: float):
@@ -101,13 +118,16 @@ class PlayScene(BaseScene):
             self.tick_timer = 0.0
             if self.sim.status == CAUGHT:
                 self.celebrate_catch()
+            if self.sim.status == ESCAPED:
+                self.send_ghosts_away()
 
     def draw(self, surface: pygame.Surface):
         self.canvas.fill(settings.BG_COLOR)
         self.board.draw(self.canvas, self.sim.pellets, self.route)
-        self.particles.draw(self.canvas)
+        self.fly_away.draw(self.canvas, self.board.map_view.tile_size)
         self.draw_ui(self.canvas)
+        offset = self.shake.offset()
         surface.fill(settings.BG_COLOR)
-        surface.blit(self.canvas, self.shake.offset())
-        self.catch_flash.draw(surface)
+        surface.blit(self.camera.frame(self.canvas), offset)
+        self.particles.draw(surface, self.camera.view(), offset)
         self.end_flash.draw(surface)
