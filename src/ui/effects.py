@@ -75,8 +75,13 @@ class CatchCamera:
         linear = min(1.0, self.elapsed / seconds)
         return linear * linear * (3 - 2 * linear)
 
+    def zoom_progress(self) -> float:
+        if self.focus is None:
+            return 0.0
+        return _ease_in_out_back(min(1.0, self.elapsed / settings.CATCH_ZOOM_SECONDS))
+
     def view(self, area: pygame.Rect) -> pygame.Rect:
-        ease = self.eased(settings.CATCH_ZOOM_SECONDS)
+        ease = self.zoom_progress()
         if ease == 0:
             return pygame.Rect(area)
         zoom = 1 + (settings.CATCH_ZOOM - 1) * ease
@@ -99,6 +104,13 @@ class CatchCamera:
         gray = pygame.transform.grayscale(frame)
         gray.set_alpha(round(255 * amount))
         frame.blit(gray, (0, 0))
+
+
+def _ease_in_out_back(linear: float) -> float:
+    overshoot = settings.CATCH_ZOOM_OVERSHOOT * 1.525
+    if linear < 0.5:
+        return (2 * linear) ** 2 * ((overshoot + 1) * 2 * linear - overshoot) / 2
+    return ((2 * linear - 2) ** 2 * ((overshoot + 1) * (2 * linear - 2) + overshoot) + 2) / 2
 
 
 class GhostFlyAway:
