@@ -66,16 +66,17 @@ def _carve_floor(width: int, height: int, rng: random.Random) -> set:
     cells = {(x, y) for y in range(1, height - 1, 2) for x in range(1, width - 1, 2)}
     first = rng.choice(sorted(cells))
     floor = {first}
-    stack = [first]
-    while stack:
-        x, y = stack[-1]
+    active = [first]
+    while active:
+        index = rng.randrange(len(active))
+        x, y = active[index]
         unvisited = [(x + dx, y + dy) for dx, dy in CELL_STEPS if (x + dx, y + dy) in cells and (x + dx, y + dy) not in floor]
         if not unvisited:
-            stack.pop()
+            active.pop(index)
             continue
         next_x, next_y = rng.choice(unvisited)
         floor |= {((x + next_x) // 2, (y + next_y) // 2), (next_x, next_y)}
-        stack.append((next_x, next_y))
+        active.append((next_x, next_y))
     return floor
 
 
