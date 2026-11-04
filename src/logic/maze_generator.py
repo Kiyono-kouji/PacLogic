@@ -76,7 +76,7 @@ def _attempt(template: Level, rng: random.Random) -> Level | None:
     level = _with_start_and_exit(template, floor, width, height, rng)
     if level is None or separate_routes(level) < settings.RANDOM_MIN_SEPARATE_ROUTES:
         return None
-    level = _with_pellets(level, floor, len(template.pellets), rng)
+    level = _with_pellets(level, floor, settings.RANDOM_PELLET_COUNTS.get(template.name, len(template.pellets)), rng)
     if level is None:
         return None
     routes = [plan(level, level.start, level.pellets, pellet_mode) for pellet_mode in (False, True)]
@@ -175,11 +175,12 @@ def _with_pellets(level: Level, floor: set, count: int, rng: random.Random) -> L
 def _with_ghosts(level: Level, routes: list, count: int, rng: random.Random) -> Level | None:
     on_route = set().union(*routes)
     from_start = maze_distances(level, level.start)
+    from_goal = maze_distances(level, level.goal)
     spawns = sorted(
         tile
         for tile, steps in from_start.items()
         if steps >= settings.RANDOM_GHOST_MIN_DISTANCE
-        and tile not in level.safe_zone
+        and from_goal[tile] - settings.SAFE_RADIUS >= settings.RANDOM_GHOST_MIN_SAFE_DISTANCE
         and tile not in level.pellets
         and tile not in on_route
     )
@@ -189,8 +190,24 @@ def _with_ghosts(level: Level, routes: list, count: int, rng: random.Random) -> 
     leader = next((tile for tile in spawns if all(intercept_moves(level, tile, route) is not None for route in routes)), None)
     if leader is None:
         return None
-    others = [tile for tile in spawns if tile != leader][: count - 1]
-    return dataclasses.replace(level, ghosts=(leader, *others))
+    ghosts = _spread_out(level, leader, spawns, count, rng)
+    return dataclasses.replace(level, ghosts=tuple(ghosts)) if ghosts else None
+
+
+def _spread_out(level: Level, leader: tuple, spawns: list, count: int, rng: random.Random) -> list | None:
+    ghosts = [leader]
+    gaps = maze_distances(level, leader)
+    while len(ghosts) < count:
+        free = {tile: gaps[tile] for tile in spawns if tile not in ghosts}
+        widest = max(free.values(), default=0)
+        if widest < settings.RANDOM_GHOST_MIN_SPACING:
+            return None
+        floor = max(settings.RANDOM_GHOST_MIN_SPACING, widest - settings.RANDOM_GHOST_SPREAD_SLACK)
+        pick = rng.choice(sorted(tile for tile, gap in free.items() if gap >= floor))
+        ghosts.append(pick)
+        from_pick = maze_distances(level, pick)
+        gaps = {tile: min(gap, from_pick[tile]) for tile, gap in gaps.items()}
+    return ghosts
 
 
 def _straight_path(level: Level, source: tuple, target: tuple) -> list:

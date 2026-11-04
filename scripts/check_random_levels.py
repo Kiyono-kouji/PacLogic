@@ -1,5 +1,6 @@
 import csv
 import random
+from itertools import combinations
 
 from scripts.check_optimal import check
 from src.core import settings
@@ -22,6 +23,8 @@ COLUMNS = (
     "exit_steps",
     "separate_routes",
     "nearest_ghost",
+    "ghost_to_safe_zone",
+    "ghost_spacing",
     "idle_ghosts",
     "interceptor",
     "interceptor_blocks",
@@ -41,6 +44,7 @@ def play(level: Level, difficulty: str, pellet_mode: bool, leader_moves: list | 
 def check_maze(level: Level, seed: int, mode: str, pellet_mode: bool) -> dict:
     result = check(level, pellet_mode)
     from_start = maze_distances(level, level.start)
+    from_goal = maze_distances(level, level.goal)
     planned = PacManBrain(level, "Easy", pellet_mode).planned_route
     leader_moves = intercept_moves(level, level.ghosts[0], route_tiles(level.start, planned))
     hard = play(level, "Hard", pellet_mode, leader_moves or [])
@@ -56,6 +60,8 @@ def check_maze(level: Level, seed: int, mode: str, pellet_mode: bool) -> dict:
         "exit_steps": from_start[level.goal],
         "separate_routes": separate_routes(level),
         "nearest_ghost": min(from_start[ghost] for ghost in level.ghosts),
+        "ghost_to_safe_zone": min(from_goal[ghost] for ghost in level.ghosts) - settings.SAFE_RADIUS,
+        "ghost_spacing": min(maze_distances(level, a)[b] for a, b in combinations(level.ghosts, 2)),
         "idle_ghosts": play(level, "Easy", pellet_mode, None).status,
         "interceptor": play(level, "Easy", pellet_mode, leader_moves).status if leader_moves else "none",
         "interceptor_blocks": block_count(leader_moves) if leader_moves else None,
@@ -71,6 +77,8 @@ def playable(row: dict) -> bool:
         and row["idle_ghosts"] == ESCAPED
         and row["interceptor"] == CAUGHT
         and row["nearest_ghost"] >= settings.RANDOM_GHOST_MIN_DISTANCE
+        and row["ghost_to_safe_zone"] >= settings.RANDOM_GHOST_MIN_SAFE_DISTANCE
+        and row["ghost_spacing"] >= settings.RANDOM_GHOST_MIN_SPACING
         and row["separate_routes"] >= settings.RANDOM_MIN_SEPARATE_ROUTES
     )
 
@@ -87,7 +95,7 @@ def main():
         writer = csv.DictWriter(file, fieldnames=COLUMNS)
         writer.writeheader()
         writer.writerows(rows)
-    print(f"{'Level':<14}{'Mode':<9}{'Size':>7}{'Routes':>7}{'Mazes':>6}{'Optimal':>9}{'Admiss.':>9}{'Escape':>8}{'Caught':>8}{'Blocks':>8}{'Ghost>=':>8}{'Hard caught':>12}{'Slowest ms':>11}")
+    print(f"{'Level':<14}{'Mode':<9}{'Size':>7}{'Routes':>7}{'Mazes':>6}{'Optimal':>9}{'Admiss.':>9}{'Escape':>8}{'Caught':>8}{'Blocks':>8}{'Ghost>=':>8}{'Safe>=':>7}{'Apart>=':>8}{'Hard caught':>12}{'Slowest ms':>11}")
     for name in settings.LEVEL_FILES:
         for mode, _ in settings.WIN_MODES:
             group = [row for row in rows if row["level"] == f"random {name[:-4]}" and row["mode"] == mode]
@@ -100,6 +108,8 @@ def main():
                 f"{sum(row['interceptor'] == CAUGHT for row in group):>8}"
                 f"{max(row['interceptor_blocks'] or 0 for row in group):>8}"
                 f"{min(row['nearest_ghost'] for row in group):>8}"
+                f"{min(row['ghost_to_safe_zone'] for row in group):>7}"
+                f"{min(row['ghost_spacing'] for row in group):>8}"
                 f"{sum(row['hard_interceptor'] == CAUGHT for row in group):>12}"
                 f"{max(row['hard_slowest_ms'] for row in group):>11}"
             )
