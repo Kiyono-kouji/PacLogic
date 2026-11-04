@@ -4,6 +4,7 @@ from src.core import settings
 from src.core.resource_loader import load_font, load_sprite, sprite_size
 from src.logic.grid import Level
 from src.ui.component import Component
+from src.ui.effects import ease_out_back
 
 
 def fit_tile_size(level: Level, area: pygame.Rect) -> int:
@@ -89,11 +90,17 @@ class MapView(Component):
             return None
         return (mouse_position[0] - self.rect.x) // self.tile_size, (mouse_position[1] - self.rect.y) // self.tile_size
 
-    def draw(self, surface: pygame.Surface, pellets=None, route=()):
+    def draw(self, surface: pygame.Surface, pellets=None, route=(), reveal: dict | None = None):
         pellets = self.level.pellets if pellets is None else pellets
         surface.blit(self.background, self.rect)
         for tile in route:
-            surface.blit(self.route_tile, self.tile_topleft(tile))
+            amount = 1.0 if reveal is None else reveal.get(tile, 1.0)
+            if amount >= 1:
+                surface.blit(self.route_tile, self.tile_topleft(tile))
+            elif amount > 0:
+                size = max(1, round(self.tile_size * ease_out_back(amount, settings.ROUTE_REVEAL_OVERSHOOT)))
+                image = pygame.transform.scale(self.route_tile, (size, size))
+                surface.blit(image, image.get_rect(center=self.tile_center(tile)))
         sprite = load_sprite("items/pellet/pellet.png", self.tile_size)
         for pellet in pellets:
             surface.blit(sprite, sprite.get_rect(center=self.tile_center(pellet)))
@@ -110,12 +117,14 @@ class MapView(Component):
                 return font
         return None
 
-    def draw_costs(self, surface: pygame.Surface, costs):
+    def draw_costs(self, surface: pygame.Surface, costs, reveal: dict | None = None):
         costs = list({tile: (tile, g, h) for tile, g, h in costs}.values())
         font = self.cost_font(costs) if costs else None
         if font is None:
             return
         for tile, g, h in costs:
+            if reveal is not None and reveal.get(tile, 1.0) < 1:
+                continue
             inner = pygame.Rect(self.tile_topleft(tile), (self.tile_size, self.tile_size)).inflate(-2 * self.cost_inset(), -2 * self.cost_inset())
             surface.blit(font.render(str(g), True, settings.COST_G_COLOR), inner.topleft)
             h_text = font.render(str(h), True, settings.COST_H_COLOR)

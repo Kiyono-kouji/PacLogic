@@ -21,6 +21,7 @@ class PlanScene(BaseScene):
         self.overview = Board(level, pygame.Rect(settings.PLAN_OVERVIEW_RECT), ghost_count)
         self.side_board = Board(level, pygame.Rect(settings.PLAN_SIDE_MAP_RECT), ghost_count)
         self.route = session.planned_route_costs if session.config["show_route"] else []
+        self.route_seconds = 0.0
         self.flash = FlashMessage()
         self.editor = ProgramEditor(session.config["block_limit"], self.flash)
         self.title = Label("Plan your ghosts", settings.PLAN_TITLE_POSITION, settings.FONT_LARGE)
@@ -69,6 +70,7 @@ class PlanScene(BaseScene):
                 self.select(index)
 
     def update(self, dt: float):
+        self.route_seconds += dt
         self.session.seconds_left = max(0.0, self.session.seconds_left - dt)
         self.update_ui(dt)
         used = len(self.editor.program)
@@ -82,7 +84,7 @@ class PlanScene(BaseScene):
 
     def draw(self, surface: pygame.Surface):
         surface.fill(settings.BG_COLOR)
-        self.active_board().draw(surface, self.session.pellets_in_play, self.route)
+        self.active_board().draw(surface, self.session.pellets_in_play, self.route, self.route_seconds)
         self.active_board().draw_ghost_markers(surface)
         self.draw_ui(surface)
         self.time_warning.draw(surface)

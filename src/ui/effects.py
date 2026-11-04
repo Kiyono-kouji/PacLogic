@@ -78,7 +78,7 @@ class CatchCamera:
     def zoom_progress(self) -> float:
         if self.focus is None:
             return 0.0
-        return _ease_out_back(min(1.0, self.elapsed / settings.CATCH_ZOOM_SECONDS))
+        return ease_out_back(min(1.0, self.elapsed / settings.CATCH_ZOOM_SECONDS), settings.CATCH_ZOOM_OVERSHOOT)
 
     def view(self, area: pygame.Rect) -> pygame.Rect:
         ease = self.zoom_progress()
@@ -106,8 +106,7 @@ class CatchCamera:
         frame.blit(gray, (0, 0))
 
 
-def _ease_out_back(linear: float) -> float:
-    overshoot = settings.CATCH_ZOOM_OVERSHOOT
+def ease_out_back(linear: float, overshoot: float) -> float:
     return 1 + (overshoot + 1) * (linear - 1) ** 3 + overshoot * (linear - 1) ** 2
 
 
