@@ -34,6 +34,9 @@ class PlayScene(BaseScene):
             Button(settings.PLAY_MENU_RECT, self.back_to_menu, "Menu"),
         ]
         self.canvas = pygame.Surface((settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT))
+        self.frame = pygame.Surface((settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT))
+        self.effect_speed = 1.0
+        self.end_delay = settings.PLAY_END_DELAY
         self.particles = Particles()
         self.shake = Shake()
         self.fly_away = GhostFlyAway()
@@ -70,9 +73,11 @@ class PlayScene(BaseScene):
 
     def celebrate_catch(self):
         pac_center = self.board.map_view.tile_center(self.sim.pac_tile)
-        self.particles.burst(pac_center)
-        self.shake.start()
+        self.particles.burst(pac_center, settings.CATCH_PARTICLE_COUNT, settings.CATCH_PARTICLE_COLORS)
+        self.shake.start(settings.CATCH_SHAKE_SECONDS, settings.CATCH_SHAKE_PIXELS)
         self.camera.start(pac_center)
+        self.effect_speed = settings.CATCH_SLOW_MOTION
+        self.end_delay = settings.CATCH_END_DELAY
 
     def send_ghosts_away(self):
         tile_size = self.board.map_view.tile_size
@@ -86,11 +91,14 @@ class PlayScene(BaseScene):
             ]
         )
         self.board.ghosts_visible = False
+        pac_center = self.board.map_view.tile_center(self.sim.pac_tile)
+        self.particles.burst(pac_center, settings.ESCAPE_PARTICLE_COUNT, settings.ESCAPE_PARTICLE_COLORS)
+        self.shake.start(settings.ESCAPE_SHAKE_SECONDS, settings.ESCAPE_SHAKE_PIXELS)
 
     def update_effects(self, dt: float):
-        self.particles.update(dt)
+        self.particles.update(dt * self.effect_speed)
         self.fly_away.update(dt)
-        self.shake.update(dt)
+        self.shake.update(dt * self.effect_speed)
         self.camera.update(dt)
         self.end_flash.update(dt)
 
@@ -102,7 +110,7 @@ class PlayScene(BaseScene):
         # Add up real seconds; a tick runs every PLAY_TICK_SECONDS (1/6 s), whatever the FPS.
         self.tick_timer += dt
         if self.sim.status != RUNNING:
-            if self.tick_timer >= settings.PLAY_END_DELAY and not self.end_flash.started:
+            if self.tick_timer >= self.end_delay and not self.end_flash.started:
                 self.end_flash.start()
             if self.end_flash.done:
                 self.game.change_scene(result_scene.ResultScene(self.game, self.session, self.sim))
@@ -125,9 +133,19 @@ class PlayScene(BaseScene):
         self.canvas.fill(settings.BG_COLOR)
         self.board.draw(self.canvas, self.sim.pellets, self.route)
         self.fly_away.draw(self.canvas, self.board.map_view.tile_size)
-        self.draw_ui(self.canvas)
+        area = self.board.map_view.rect
+        view = self.camera.view(area)
+        zoomed = view != area
+        self.frame.blit(self.canvas, (0, 0))
+        if zoomed:
+            self.frame.blit(self.camera.zoomed(self.canvas, area, settings.MAP_FLOOR_COLOR), area.topleft)
+        self.draw_ui(self.frame)
+        self.camera.desaturate(self.frame)
         offset = self.shake.offset()
         surface.fill(settings.BG_COLOR)
-        surface.blit(self.camera.frame(self.canvas), offset)
-        self.particles.draw(surface, self.camera.view(), offset)
+        surface.blit(self.frame, offset)
+        if zoomed:
+            surface.set_clip(area.move(offset))
+        self.particles.draw(surface, view, area, offset)
+        surface.set_clip(None)
         self.end_flash.draw(surface)
