@@ -9,7 +9,7 @@ from src.scenes import menu_scene, result_scene
 from src.scenes.base_scene import BaseScene
 from src.ui.board import Board
 from src.ui.button import Button
-from src.ui.effects import CatchCamera, DeadPacMan, Flash, GhostFlyAway, Particles, Shake
+from src.ui.effects import CatchCamera, DeadPacMan, EscapeCelebration, Flash, GhostFlyAway, Particles, Shake
 from src.ui.hud import HUD
 from src.ui.label import Label
 from src.ui.panel import Panel
@@ -42,6 +42,7 @@ class PlayScene(BaseScene):
         self.fly_away = GhostFlyAway()
         self.camera = CatchCamera()
         self.dead_pac_man = DeadPacMan()
+        self.celebration = EscapeCelebration()
         self.end_flash = Flash(settings.END_FLASH_COLOR, 255, settings.END_FLASH_OUT_SECONDS, True)
         self.show_status()
 
@@ -98,6 +99,10 @@ class PlayScene(BaseScene):
         pac_center = self.board.map_view.tile_center(self.sim.pac_tile)
         self.particles.burst(pac_center, settings.ESCAPE_PARTICLE_COUNT, settings.ESCAPE_PARTICLE_COLORS)
         self.shake.start(settings.ESCAPE_SHAKE_SECONDS, settings.ESCAPE_SHAKE_PIXELS)
+        pac_sprite = load_character_sprite(self.board.pac_man.sprite_name(), tile_size)
+        self.celebration.start(pac_sprite, pac_center, tile_size)
+        self.board.pac_man_visible = False
+        self.end_delay = settings.ESCAPE_END_DELAY
 
     def update_effects(self, dt: float):
         self.particles.update(dt * self.effect_speed)
@@ -105,6 +110,7 @@ class PlayScene(BaseScene):
         self.shake.update(dt * self.effect_speed)
         self.camera.update(dt)
         self.dead_pac_man.update(dt)
+        self.celebration.update(dt)
         self.end_flash.update(dt)
 
     def update(self, dt: float):
@@ -140,6 +146,7 @@ class PlayScene(BaseScene):
         self.fly_away.draw(self.canvas, self.board.map_view.tile_size)
         self.dead_pac_man.draw(self.canvas)
         area = self.board.map_view.rect
+        self.celebration.draw(self.canvas, area.center)
         view = self.camera.view(area)
         zoomed = view != area
         self.frame.blit(self.canvas, (0, 0))
