@@ -1,10 +1,13 @@
+import random
+
 from src.core import settings
 from src.logic.brain import PacManBrain
 from src.logic.grid import Level, load_level
+from src.logic.maze_generator import generate_level
 from src.logic.route import route_costs
 from src.logic.sim import Sim
 
-OPTIONS = ("level", "difficulty", "ghosts", "mode", "time")
+OPTIONS = ("level", "random", "difficulty", "ghosts", "mode", "time")
 DIFFICULTY_NAMES = tuple(settings.DIFFICULTIES)
 
 
@@ -15,6 +18,8 @@ class Session:
         self.options = dict(settings.OPTION_DEFAULTS)
         self.loaded_levels: dict = {}
         self.level: Level | None = None
+        self.random_level: Level | None = None
+        self.rng = random.Random()
         self.planned_route_costs: list = []
         self.programs: list = []
         self.parsed_programs: list = []
@@ -32,6 +37,8 @@ class Session:
     def option_count(self, option: str) -> int:
         if option == "level":
             return len(settings.LEVEL_FILES)
+        if option == "random":
+            return len(settings.RANDOM_MAZE_CHOICES)
         if option == "difficulty":
             return len(DIFFICULTY_NAMES)
         if option == "ghosts":
@@ -47,6 +54,8 @@ class Session:
     def option_text(self, option: str) -> str:
         if option == "level":
             return self.chosen_level().name.capitalize()
+        if option == "random":
+            return settings.RANDOM_MAZE_CHOICES[self.options["random"]][0]
         if option == "difficulty":
             return self.difficulty
         if option == "ghosts":
@@ -67,6 +76,10 @@ class Session:
         return settings.DIFFICULTIES[self.difficulty]
 
     @property
+    def random_maze(self) -> bool:
+        return settings.RANDOM_MAZE_CHOICES[self.options["random"]][1]
+
+    @property
     def pellet_mode(self) -> bool:
         return settings.WIN_MODES[self.options["mode"]][1]
 
@@ -82,8 +95,15 @@ class Session:
     def ghost_count(self) -> int:
         return min(self.options["ghosts"], self.max_ghosts() - 1) + 1
 
-    def prepare(self):
-        self.level = self.chosen_level()
+    def round_level(self, new_maze: bool) -> Level:
+        if not self.random_maze:
+            return self.chosen_level()
+        if new_maze or self.random_level is None:
+            self.random_level = generate_level(self.chosen_level(), self.rng)
+        return self.random_level
+
+    def prepare(self, new_maze: bool = False):
+        self.level = self.round_level(new_maze)
         self.clear_programs()
         brain = PacManBrain(self.level, self.difficulty, self.pellet_mode)
         self.planned_route_costs = route_costs(

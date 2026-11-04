@@ -44,7 +44,15 @@ DIFFICULTIES = {
 LEVEL_FILES = ("easy.txt", "medium.txt", "hard.txt")
 WIN_MODES = (("Exit", False), ("Pellets", True))
 PLANNING_TIMES = (60, 90, 120, 180)
-OPTION_DEFAULTS = {"level": 0, "difficulty": 0, "ghosts": 3, "mode": 0, "time": 1}
+RANDOM_MAZE_CHOICES = (("Off", False), ("On", True))
+OPTION_DEFAULTS = {"level": 0, "random": 0, "difficulty": 0, "ghosts": 3, "mode": 0, "time": 1}
+
+RANDOM_MAX_ATTEMPTS = 200
+RANDOM_LOOP_CHANCE = 0.3
+RANDOM_EXIT_MIN_FRACTION = 0.75
+RANDOM_GHOST_MIN_DISTANCE = 8
+RANDOM_MAX_PLAN_NODES = 12000
+RANDOM_MAX_INTERCEPT_BLOCKS = min(config["block_limit"] for config in DIFFICULTIES.values())
 
 TICK_CAP_FACTOR = 3
 TICK_CAP_BONUS = 20
@@ -156,7 +164,7 @@ MENU_DIM_COLOR = (0, 0, 0, 170)
 SETUP_PANEL_RECT = (340, 100, 600, 520)
 SETUP_TITLE_POSITION = (SCREEN_WIDTH // 2, 140)
 SETUP_ROW_TOP = 200
-SETUP_ROW_HEIGHT = 64
+SETUP_ROW_HEIGHT = 56
 SETUP_NAME_X = 380
 SETUP_LEFT_ARROW_X = 620
 SETUP_RIGHT_ARROW_X = 852
