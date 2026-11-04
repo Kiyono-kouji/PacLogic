@@ -38,12 +38,91 @@ class Particles:
             particle["life"] -= dt
         self.items = [particle for particle in self.items if particle["life"] > 0]
 
-    def draw(self, surface: pygame.Surface):
+    def draw(self, surface: pygame.Surface, view: pygame.Rect | None = None, offset: tuple = (0, 0)):
+        view = view or surface.get_rect()
+        scale_x = surface.get_width() / view.width
+        scale_y = surface.get_height() / view.height
         for particle in self.items:
-            size = max(1, round(particle["size"] * particle["life"] / particle["max_life"]))
-            left = round(particle["x"]) - size // 2
-            top = round(particle["y"]) - size // 2
-            pygame.draw.rect(surface, particle["color"], (left, top, size, size))
+            size = max(1, round(particle["size"] * scale_x * particle["life"] / particle["max_life"]))
+            x = (particle["x"] - view.left) * scale_x + offset[0]
+            y = (particle["y"] - view.top) * scale_y + offset[1]
+            pygame.draw.rect(surface, particle["color"], (round(x) - size // 2, round(y) - size // 2, size, size))
+
+
+class CatchCamera:
+    def __init__(self):
+        self.focus: tuple | None = None
+        self.elapsed = 0.0
+
+    def start(self, focus: tuple):
+        self.focus = focus
+        self.elapsed = 0.0
+
+    def update(self, dt: float):
+        if self.focus is not None:
+            self.elapsed = min(settings.CATCH_ZOOM_SECONDS, self.elapsed + dt)
+
+    def progress(self) -> float:
+        if self.focus is None:
+            return 0.0
+        linear = self.elapsed / settings.CATCH_ZOOM_SECONDS
+        return linear * linear * (3 - 2 * linear)
+
+    def view(self) -> pygame.Rect:
+        width, height = settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT
+        ease = self.progress()
+        if ease == 0:
+            return pygame.Rect(0, 0, width, height)
+        zoom = 1 + (settings.CATCH_ZOOM - 1) * ease
+        view_width, view_height = width / zoom, height / zoom
+        center_x = width / 2 + (self.focus[0] - width / 2) * ease
+        center_y = height / 2 + (self.focus[1] - height / 2) * ease
+        left = min(max(center_x - view_width / 2, 0), width - view_width)
+        top = min(max(center_y - view_height / 2, 0), height - view_height)
+        return pygame.Rect(round(left), round(top), round(view_width), round(view_height))
+
+    def frame(self, canvas: pygame.Surface) -> pygame.Surface:
+        ease = self.progress()
+        if ease == 0:
+            return canvas
+        image = pygame.transform.scale(canvas.subsurface(self.view()), canvas.get_size())
+        gray = pygame.transform.grayscale(image)
+        gray.set_alpha(round(255 * ease))
+        image.blit(gray, (0, 0))
+        return image
+
+
+class GhostFlyAway:
+    def __init__(self):
+        self.ghosts: list = []
+        self.elapsed = 0.0
+
+    @property
+    def started(self) -> bool:
+        return bool(self.ghosts)
+
+    def start(self, ghosts: list):
+        self.ghosts = list(ghosts)
+        self.elapsed = 0.0
+
+    def update(self, dt: float):
+        if self.started:
+            self.elapsed += dt
+
+    def draw(self, surface: pygame.Surface, tile_size: int):
+        for order, (sprite, center) in enumerate(self.ghosts):
+            progress = (self.elapsed - order * settings.ESCAPE_GHOST_STAGGER) / settings.ESCAPE_GHOST_SECONDS
+            progress = min(max(progress, 0.0), 1.0)
+            if progress >= 1:
+                continue
+            whiteness = round(255 * min(1.0, progress / settings.ESCAPE_GHOST_WHITEN_SHARE))
+            image = sprite.copy()
+            image.fill((whiteness, whiteness, whiteness), special_flags=pygame.BLEND_RGB_ADD)
+            fade_from = 1 - settings.ESCAPE_GHOST_FADE_SHARE
+            if progress > fade_from:
+                image.set_alpha(round(255 * (1 - (progress - fade_from) / settings.ESCAPE_GHOST_FADE_SHARE)))
+            rise = settings.ESCAPE_GHOST_RISE_TILES * tile_size * progress * progress
+            surface.blit(image, image.get_rect(center=(center[0], center[1] - rise)))
 
 
 class Shake:
