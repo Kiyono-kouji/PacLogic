@@ -1,0 +1,221 @@
+import dataclasses
+import itertools
+from collections import deque
+import math
+import random
+
+from src.core import settings
+from src.logic.grid import Level, LevelError, maze_distances, move, validate_level
+from src.logic.search import plan
+
+CELL_STEPS = ((0, -2), (2, 0), (0, 2), (-2, 0))
+
+
+def generate_level(template: Level, rng: random.Random) -> Level:
+    for _ in range(settings.RANDOM_MAX_ATTEMPTS):
+        level = _attempt(template, rng)
+        if level is not None:
+            return level
+    raise LevelError(f"{template.name}: no playable random maze in {settings.RANDOM_MAX_ATTEMPTS} attempts")
+
+
+def route_tiles(start: tuple, directions: list) -> list:
+    tiles = []
+    for direction in directions:
+        start = move(start, direction)
+        tiles.append(start)
+    return tiles
+
+
+def intercept_moves(level: Level, ghost: tuple, route: list) -> list | None:
+    reach = maze_distances(level, ghost, level.safe_zone)
+    for tick, tile in enumerate(route, start=1):
+        if tile in level.safe_zone or reach.get(tile, math.inf) > tick:
+            continue
+        moves = _straight_path(level, ghost, tile)
+        if block_count(moves) <= settings.RANDOM_MAX_INTERCEPT_BLOCKS:
+            return moves
+    return None
+
+
+def separate_routes(level: Level) -> int:
+    used = set()
+    count = 0
+    while True:
+        parents = {level.start: None}
+        queue = deque([level.start])
+        while queue and level.goal not in parents:
+            tile = queue.popleft()
+            for _, next_tile in level.adjacency[tile]:
+                if next_tile not in parents and ((tile, next_tile) not in used or (next_tile, tile) in used):
+                    parents[next_tile] = tile
+                    queue.append(next_tile)
+        if level.goal not in parents:
+            return count
+        tile = level.goal
+        while parents[tile] is not None:
+            previous = parents[tile]
+            if (tile, previous) in used:
+                used.discard((tile, previous))
+            else:
+                used.add((previous, tile))
+            tile = previous
+        count += 1
+
+
+def block_count(moves: list) -> int:
+    runs = [len(list(group)) for _, group in itertools.groupby(moves)]
+    return sum(1 if length == 1 else 2 * math.ceil(length / settings.REPEAT_MAX) for length in runs)
+
+
+def _attempt(template: Level, rng: random.Random) -> Level | None:
+    width, height = settings.RANDOM_MAZE_SIZES.get(template.name, (template.width, template.height))
+    floor = _carve_floor(width, height, rng)
+    _open_loops(floor, width, height, rng)
+    _remove_dead_ends(floor, width, height, rng)
+    level = _with_start_and_exit(template, floor, width, height, rng)
+    if level is None or separate_routes(level) < settings.RANDOM_MIN_SEPARATE_ROUTES:
+        return None
+    level = _with_pellets(level, floor, settings.RANDOM_PELLET_COUNTS.get(template.name, len(template.pellets)), rng)
+    if level is None:
+        return None
+    routes = [plan(level, level.start, level.pellets, pellet_mode) for pellet_mode in (False, True)]
+    if any(result.cost is None for result in routes) or routes[1].expanded > settings.RANDOM_MAX_PLAN_NODES:
+        return None
+    level = _with_ghosts(level, [route_tiles(level.start, result.path) for result in routes], len(template.ghosts), rng)
+    if level is None:
+        return None
+    try:
+        validate_level(level)
+    except LevelError:
+        return None
+    return level
+
+
+def _carve_floor(width: int, height: int, rng: random.Random) -> set:
+    cells = {(x, y) for y in range(1, height - 1, 2) for x in range(1, width - 1, 2)}
+    first = rng.choice(sorted(cells))
+    floor = {first}
+    active = [first]
+    while active:
+        index = rng.randrange(len(active))
+        x, y = active[index]
+        unvisited = [(x + dx, y + dy) for dx, dy in CELL_STEPS if (x + dx, y + dy) in cells and (x + dx, y + dy) not in floor]
+        if not unvisited:
+            active.pop(index)
+            continue
+        next_x, next_y = rng.choice(unvisited)
+        floor |= {((x + next_x) // 2, (y + next_y) // 2), (next_x, next_y)}
+        active.append((next_x, next_y))
+    return floor
+
+
+def _open_loops(floor: set, width: int, height: int, rng: random.Random):
+    for y in range(1, height - 1):
+        for x in range(1, width - 1):
+            if (x, y) in floor or (x + y) % 2 == 0:
+                continue
+            across = (x - 1, y) in floor and (x + 1, y) in floor
+            down = (x, y - 1) in floor and (x, y + 1) in floor
+            if across != down and rng.random() < settings.RANDOM_LOOP_CHANCE:
+                floor.add((x, y))
+
+
+def _remove_dead_ends(floor: set, width: int, height: int, rng: random.Random):
+    for x, y in sorted(floor):
+        if x % 2 == 0 or y % 2 == 0:
+            continue
+        open_sides = [(dx, dy) for dx, dy in CELL_STEPS if (x + dx // 2, y + dy // 2) in floor]
+        if len(open_sides) != 1:
+            continue
+        closed_sides = [
+            (x + dx // 2, y + dy // 2)
+            for dx, dy in CELL_STEPS
+            if 0 < x + dx < width - 1 and 0 < y + dy < height - 1 and (x + dx // 2, y + dy // 2) not in floor
+        ]
+        floor.add(rng.choice(closed_sides))
+
+
+def _with_start_and_exit(template: Level, floor: set, width: int, height: int, rng: random.Random) -> Level | None:
+    walls = frozenset((x, y) for y in range(height) for x in range(width) if (x, y) not in floor)
+    corner = min(floor)
+    blank = Level(
+        name=f"random {template.name}",
+        width=width,
+        height=height,
+        walls=walls,
+        start=corner,
+        goal=corner,
+        ghosts=(),
+        pellets=frozenset(),
+    )
+    tables = {tile: maze_distances(blank, tile) for tile in sorted(floor)}
+    longest = max(max(table.values()) for table in tables.values())
+    junctions = {tile for tile in floor if len(blank.adjacency[tile]) >= settings.RANDOM_END_MIN_EXITS}
+    pairs = [
+        (start, goal)
+        for start, table in tables.items()
+        if start in junctions
+        for goal, steps in table.items()
+        if goal in junctions and steps >= settings.RANDOM_EXIT_MIN_FRACTION * longest
+    ]
+    if not pairs:
+        return None
+    start, goal = rng.choice(pairs)
+    return dataclasses.replace(blank, start=start, goal=goal)
+
+
+def _with_pellets(level: Level, floor: set, count: int, rng: random.Random) -> Level | None:
+    open_tiles = sorted(floor - {level.start, level.goal} - level.safe_zone)
+    if len(open_tiles) < count:
+        return None
+    return dataclasses.replace(level, pellets=frozenset(rng.sample(open_tiles, count)))
+
+
+def _with_ghosts(level: Level, routes: list, count: int, rng: random.Random) -> Level | None:
+    on_route = set().union(*routes)
+    from_start = maze_distances(level, level.start)
+    from_goal = maze_distances(level, level.goal)
+    spawns = sorted(
+        tile
+        for tile, steps in from_start.items()
+        if steps >= settings.RANDOM_GHOST_MIN_DISTANCE
+        and from_goal[tile] - settings.SAFE_RADIUS >= settings.RANDOM_GHOST_MIN_SAFE_DISTANCE
+        and tile not in level.pellets
+        and tile not in on_route
+    )
+    if len(spawns) < count:
+        return None
+    rng.shuffle(spawns)
+    leader = next((tile for tile in spawns if all(intercept_moves(level, tile, route) is not None for route in routes)), None)
+    if leader is None:
+        return None
+    ghosts = _spread_out(level, leader, spawns, count, rng)
+    return dataclasses.replace(level, ghosts=tuple(ghosts)) if ghosts else None
+
+
+def _spread_out(level: Level, leader: tuple, spawns: list, count: int, rng: random.Random) -> list | None:
+    ghosts = [leader]
+    gaps = maze_distances(level, leader)
+    while len(ghosts) < count:
+        free = {tile: gaps[tile] for tile in spawns if tile not in ghosts}
+        widest = max(free.values(), default=0)
+        if widest < settings.RANDOM_GHOST_MIN_SPACING:
+            return None
+        floor = max(settings.RANDOM_GHOST_MIN_SPACING, widest - settings.RANDOM_GHOST_SPREAD_SLACK)
+        pick = rng.choice(sorted(tile for tile, gap in free.items() if gap >= floor))
+        ghosts.append(pick)
+        from_pick = maze_distances(level, pick)
+        gaps = {tile: min(gap, from_pick[tile]) for tile, gap in gaps.items()}
+    return ghosts
+
+
+def _straight_path(level: Level, source: tuple, target: tuple) -> list:
+    to_target = maze_distances(level, target, level.safe_zone)
+    moves = []
+    heading = None
+    while source != target:
+        steps = [(direction, tile) for direction, tile in level.adjacency[source] if to_target.get(tile) == to_target[source] - 1]
+        heading, source = min(steps, key=lambda step: step[0] != heading)
+        moves.append(heading)
+    return moves
