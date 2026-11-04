@@ -19,10 +19,13 @@ def move(position: tuple, direction: str) -> tuple:
     return position[0] + dx, position[1] + dy
 
 
+# |dx| + |dy| between two tiles, ignoring walls.
 def manhattan(a: tuple, b: tuple) -> int:
     return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
 
+# frozen=True: a Level can't be changed, which makes it hashable (lru_cache uses it as a key).
+# walls is a set of every "#" position.
 @dataclass(frozen=True)
 class Level:
     name: str
@@ -46,19 +49,23 @@ class Level:
             if self.passable(next_tile):
                 yield direction, next_tile
 
-    @cached_property
+    @cached_property 
     def floor_tiles(self) -> frozenset:
         return frozenset((x, y) for y in range(self.height) for x in range(self.width) if (x, y) not in self.walls)
 
+    # cached_property: computed the first time it's read, then stored on this Level.
+    # Each floor tile -> its non-wall neighbours. All searches move through this.
     @cached_property
     def adjacency(self) -> dict:
         return {tile: tuple(self.neighbors(tile)) for tile in self.floor_tiles}
 
+    # Tiles within SAFE_RADIUS steps of the exit. Ghosts can't enter them.
     @cached_property
     def safe_zone(self) -> frozenset:
         return frozenset(tile for tile, distance in maze_distances(self, self.goal).items() if distance <= settings.SAFE_RADIUS)
 
 
+# BFS from source: real steps around walls to every reachable tile. Tiles in blocked act as walls.
 def maze_distances(level: Level, source: tuple, blocked: frozenset = frozenset()) -> dict:
     distances = {source: 0}
     frontier = deque([source])
@@ -73,8 +80,9 @@ def maze_distances(level: Level, source: tuple, blocked: frozenset = frozenset()
 
 def parse_level(text: str, name: str) -> Level:
     rows = [line.rstrip() for line in text.splitlines()]
+    # Drop empty lines at the end of the file ("" counts as False; "rows and" stops a crash on []).
     while rows and not rows[-1]:
-        rows.pop()
+        rows.pop() 
     if not rows:
         raise LevelError(f"{name}: the level is empty")
     width = max(len(row) for row in rows)

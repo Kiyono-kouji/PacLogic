@@ -39,6 +39,9 @@ class PacManBrain:
     ) -> SearchResult:
         return self.record(plan(self.level, position, pellets, self.pellet_mode, blocked, danger, self.algorithm))
 
+    # Easy/Medium: follow the route planned at the start.
+    # Hard (replan): every tick, 1) replan a full route around the ghosts; if none,
+    # 2) head for the nearest reachable pellet; if that fails too, 3) hold_move picks one step.
     def next_move(self, position: tuple, pellets: frozenset, ghosts: tuple) -> str | None:
         if self.config["replan"]:
             danger = danger_map(self.level, ghosts)
@@ -58,6 +61,9 @@ class PacManBrain:
         self.route = list(result.path)
         return result.cost is not None
 
+    # Last resort when ghosts block every route: score each option (stay, or a free neighbour).
+    # Safe tiles (every ghost more than 2 steps away) beat unsafe ones (True > False).
+    # Among safe tiles the closest to the target wins; among unsafe, the furthest from a ghost.
     def hold_move(self, position: tuple, pellets: frozenset, ghosts: tuple) -> str | None:
         ghost_distances = [maze_distances(self.level, ghost, self.level.safe_zone) for ghost in ghosts]
         targets = pellets if self.pellet_mode and pellets else (self.level.goal,)

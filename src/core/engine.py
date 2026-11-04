@@ -29,6 +29,7 @@ class Game:
     def quit(self):
         self.running = False
 
+    # The tutorial panel gets each event first, then its button, then the current scene.
     def handle_event(self, event: pygame.event.Event):
         if self.tutorial.handle_event(event):
             return
@@ -38,6 +39,8 @@ class Game:
 
     def run(self):
         while self.running:
+            # dt = seconds since the last frame: clock.tick gives milliseconds, / 1000 makes seconds.
+            # Capped at MAX_DT so a freeze doesn't make the game jump ahead.
             raw_dt = self.clock.tick(settings.FPS) / 1000.0
             dt = min(raw_dt, settings.MAX_DT)
             for event in pygame.event.get():
@@ -45,6 +48,7 @@ class Game:
                     self.quit()
                 else:
                     self.handle_event(event)
+            # While the tutorial is open the scene isn't updated, so the game is paused.
             if not self.tutorial.visible:
                 self.scene.update(dt)
             self.scene.draw(self.screen)

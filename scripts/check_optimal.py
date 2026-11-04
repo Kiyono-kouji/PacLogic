@@ -6,7 +6,7 @@ from src.logic.grid import Level
 from src.logic.search import ASTAR, heuristic_for, plan
 
 
-def true_costs_left(level: Level, pellet_mode: bool) -> dict:
+def true_costs_left(level: Level, pellet_mode: bool) -> dict: #Computes real, optimal costs from every state to the goal, making sure h(n) does not overestimate.
     pellets = level.pellets if pellet_mode else frozenset()
     goal = (level.goal, frozenset())
     costs = {goal: 0}

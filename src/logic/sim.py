@@ -52,6 +52,7 @@ class Sim:
 
     def move_ghosts(self):
         for i, controller in enumerate(self.controllers):
+            # One next() runs the ghost's program to its next yield: one action per tick.
             action = next(controller, None)
             if action in DIRECTIONS:
                 self.ghost_directions[i] = action
@@ -69,6 +70,7 @@ class Sim:
             if self.level.passable(next_pac_tile):
                 self.pac_tile = next_pac_tile
 
+    # One tick: ghosts move first, then Pac-Man. Caught is checked after each move.
     def step(self):
         if self.status != RUNNING:
             return

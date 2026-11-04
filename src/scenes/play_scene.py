@@ -64,6 +64,7 @@ class PlayScene(BaseScene):
         self.update_ui(dt)
         if self.paused:
             return
+        # Add up real seconds; a tick runs every PLAY_TICK_SECONDS (1/6 s), whatever the FPS.
         self.tick_timer += dt
         if self.sim.status != RUNNING:
             if self.tick_timer >= settings.PLAY_END_DELAY:
@@ -71,6 +72,7 @@ class PlayScene(BaseScene):
             return
         if self.tick_timer < settings.PLAY_TICK_SECONDS:
             return
+        # Subtract instead of resetting to 0, so leftover time carries over and it stays 6 per second.
         self.tick_timer -= settings.PLAY_TICK_SECONDS
         self.sim.step()
         self.board.show_sim(self.sim)

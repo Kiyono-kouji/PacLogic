@@ -26,18 +26,24 @@ def can_add(program: list, limit: int) -> bool:
     return len(program) < limit
 
 
+# The program is a flat list; "inside a loop" just means a bigger depth.
+# Returns (start, stop) of a block, including the whole body for a Repeat.
 def block_span(program: list, index: int) -> tuple[int, int]:
     head = program[index]
     stop = index + 1
     if head["type"] == REPEAT:
+        # The body is every block right after the Repeat that is deeper than it.
         while stop < len(program) and program[stop]["depth"] > head["depth"]:
             stop += 1
     return index, stop
 
 
+# Which depths a block dropped at index may have.
 def depth_range(program: list, index: int) -> tuple[int, int]:
     above = program[index - 1] if index > 0 else None
+    # Deepest: the block above's depth, +1 only if it is a Repeat (True counts as 1).
     highest = above["depth"] + (above["type"] == REPEAT) if above else 0
+    # Shallowest: the block below's depth, so a loop body is never cut in half.
     lowest = program[index]["depth"] if index < len(program) else 0
     return min(lowest, highest), highest
 
@@ -70,8 +76,11 @@ def parse(program: list) -> list:
     return root
 
 
+# A generator: every yield is one action (a direction, or None to stand still).
+# The Sim calls next() once per tick, so the program pauses at each yield until the next tick.
 def _execute(nodes: list, steps_without_action: list) -> Iterator[str | None]:
     for node in nodes:
+        # Safety net: Repeats with nothing inside would never yield, so force a None.
         steps_without_action[0] += 1
         if steps_without_action[0] >= settings.MAX_STEPS_WITHOUT_ACTION:
             steps_without_action[0] = 0
@@ -82,13 +91,16 @@ def _execute(nodes: list, steps_without_action: list) -> Iterator[str | None]:
             yield node["direction"]
         elif kind == WAIT:
             steps_without_action[0] = 0
+            # Wait n = n ticks of standing still (ticks, not seconds).
             for _ in range(node["count"]):
                 yield None
         elif kind == REPEAT:
             for _ in range(node["count"]):
+                # yield from passes on every action of the loop body, count times.
                 yield from _execute(node["body"], steps_without_action)
 
 
+# Runs the program once, then idle() stands the ghost still forever.
 def run(tree: list) -> Iterator[str | None]:
     yield from _execute(tree, [0])
     yield from idle()

@@ -8,6 +8,8 @@ OPTIONS = ("level", "difficulty", "ghosts", "mode", "time")
 DIFFICULTY_NAMES = tuple(settings.DIFFICULTIES)
 
 
+# Scenes are recreated on every switch. This one object is passed to every scene and keeps
+# the menu options, level, ghost programs and planning time between screens.
 class Session:
     def __init__(self):
         self.options = dict(settings.OPTION_DEFAULTS)
@@ -54,6 +56,8 @@ class Session:
         minutes, seconds = divmod(self.planning_time, 60)
         return f"{minutes}:{seconds:02d}"
 
+    # @property: read like a variable (session.difficulty), recomputed every time
+    # because the menu can change it. Not cached.
     @property
     def difficulty(self) -> str:
         return DIFFICULTY_NAMES[self.options["difficulty"]]
@@ -91,6 +95,7 @@ class Session:
         self.parsed_programs = [[] for _ in range(self.ghost_count)]
         self.seconds_left = float(self.planning_time)
 
+    # A fresh brain (it plans again) and a fresh Sim for every round.
     def new_sim(self, controllers: list | None = None) -> Sim:
         brain = PacManBrain(self.level, self.difficulty, self.pellet_mode)
         return Sim(self.level, brain, self.pellet_mode, self.ghost_count, controllers)

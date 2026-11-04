@@ -48,6 +48,7 @@ class ProgramEditor(Component):
         rows += [(top, settings.BLOCK_FOOT_HEIGHT, index) for index, top in feet.items()]
         return next((index for top, height, index in rows if top <= y < top + height), None)
 
+    # Mouse y picks the gap: the top of the list or the bottom edge of any block, whichever is closest.
     def insertion_index(self, position: tuple[int, int]) -> int:
         y = position[1] - self.origin()[1]
         tops, _, _ = block_view.program_layout(self.program)
@@ -79,6 +80,8 @@ class ProgramEditor(Component):
                 self.flash.show("Block limit reached")
                 return
             index = self.insertion_index(position)
+            # Mouse x picks inside or outside a loop: every INDENT (24 px) right is one level deeper,
+            # clamped to what depth_range allows at that gap.
             low, high = blocks.depth_range(self.program, index)
             depth = max(low, min(high, (position[0] - self.origin()[0]) // settings.INDENT))
             self.place(index, depth - self.held[0]["depth"])
