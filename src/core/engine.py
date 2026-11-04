@@ -33,7 +33,7 @@ class Game:
     def handle_event(self, event: pygame.event.Event):
         if self.tutorial.handle_event(event):
             return
-        if self.tutorial_button.handle_event(event):
+        if self.scene.shows_tutorial_button and self.tutorial_button.handle_event(event):
             return
         self.scene.handle_event(event)
 
@@ -52,7 +52,8 @@ class Game:
             if not self.tutorial.visible:
                 self.scene.update(dt)
             self.scene.draw(self.screen)
-            self.tutorial_button.draw(self.screen)
+            if self.scene.shows_tutorial_button:
+                self.tutorial_button.draw(self.screen)
             self.tutorial.draw(self.screen)
             pygame.display.flip()
         pygame.quit()

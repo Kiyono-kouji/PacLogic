@@ -4,6 +4,8 @@ from src.ui.component import Component
 
 
 class BaseScene:
+    shows_tutorial_button = True
+
     def __init__(self, game, session):
         self.game = game
         self.session = session
