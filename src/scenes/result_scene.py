@@ -47,7 +47,7 @@ class ResultScene(BaseScene):
         return labels
 
     def play_again(self):
-        self.session.prepare()
+        self.session.prepare(new_maze=True)
         self.game.change_scene(preview_scene.PreviewScene(self.game, self.session))
 
     def back_to_menu(self):
