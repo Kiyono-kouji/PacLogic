@@ -8,6 +8,7 @@ from src.scenes import play_scene
 from src.scenes.base_scene import BaseScene
 from src.ui.board import Board
 from src.ui.button import Button
+from src.ui.effects import WarningPulse
 from src.ui.flash_message import FlashMessage
 from src.ui.label import Label
 from src.ui.program_editor import ProgramEditor
@@ -30,6 +31,7 @@ class PlanScene(BaseScene):
         count_position = (program_rect.right - settings.EDITOR_PADDING, program_rect.top + settings.EDITOR_PADDING)
         self.block_count = Label("", count_position, settings.FONT_SMALL, settings.TEXT_DIM_COLOR, anchor="topright")
         self.selected: int | None = None
+        self.time_warning = WarningPulse()
         self.ui = [self.title, self.timer, self.hint, self.editor, self.block_count, self.lock_button, self.flash]
         self.select(None)
 
@@ -74,6 +76,7 @@ class PlanScene(BaseScene):
         seconds = math.ceil(self.session.seconds_left)
         warning = seconds < settings.TIMER_WARNING_SECONDS
         self.timer.set_text(f"{seconds // 60}:{seconds % 60:02d}", settings.WARNING_COLOR if warning else settings.TEXT_COLOR)
+        self.time_warning.update(dt, warning)
         if self.session.seconds_left <= 0:
             self.lock_and_run()
 
@@ -82,3 +85,4 @@ class PlanScene(BaseScene):
         self.active_board().draw(surface, self.session.pellets_in_play, self.route)
         self.active_board().draw_ghost_markers(surface)
         self.draw_ui(surface)
+        self.time_warning.draw(surface)
