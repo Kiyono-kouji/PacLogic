@@ -10,11 +10,11 @@ class Particles:
     def __init__(self):
         self.items: list = []
 
-    def burst(self, center: tuple):
-        for _ in range(settings.CATCH_PARTICLE_COUNT):
+    def burst(self, center: tuple, count: int, colors: tuple):
+        for _ in range(count):
             angle = random.uniform(0, math.tau)
-            speed = random.uniform(*settings.CATCH_PARTICLE_SPEED)
-            life = random.uniform(*settings.CATCH_PARTICLE_LIFE)
+            speed = random.uniform(*settings.PARTICLE_SPEED)
+            life = random.uniform(*settings.PARTICLE_LIFE)
             self.items.append(
                 {
                     "x": float(center[0]),
@@ -23,29 +23,36 @@ class Particles:
                     "vy": math.sin(angle) * speed,
                     "life": life,
                     "max_life": life,
-                    "size": random.randint(*settings.CATCH_PARTICLE_SIZE),
-                    "color": random.choice(settings.CATCH_PARTICLE_COLORS),
+                    "size": random.randint(*settings.PARTICLE_SIZE),
+                    "color": random.choice(colors),
                 }
             )
 
     def update(self, dt: float):
-        slowdown = math.exp(-settings.CATCH_PARTICLE_DRAG * dt)
+        slowdown = math.exp(-settings.PARTICLE_DRAG * dt)
         for particle in self.items:
             particle["vx"] *= slowdown
-            particle["vy"] = particle["vy"] * slowdown + settings.CATCH_PARTICLE_GRAVITY * dt
+            particle["vy"] = particle["vy"] * slowdown + settings.PARTICLE_GRAVITY * dt
             particle["x"] += particle["vx"] * dt
             particle["y"] += particle["vy"] * dt
             particle["life"] -= dt
         self.items = [particle for particle in self.items if particle["life"] > 0]
 
-    def draw(self, surface: pygame.Surface, view: pygame.Rect | None = None, offset: tuple = (0, 0)):
+    def draw(
+        self,
+        surface: pygame.Surface,
+        view: pygame.Rect | None = None,
+        target: pygame.Rect | None = None,
+        offset: tuple = (0, 0),
+    ):
         view = view or surface.get_rect()
-        scale_x = surface.get_width() / view.width
-        scale_y = surface.get_height() / view.height
+        target = target or surface.get_rect()
+        scale_x = target.width / view.width
+        scale_y = target.height / view.height
         for particle in self.items:
             size = max(1, round(particle["size"] * scale_x * particle["life"] / particle["max_life"]))
-            x = (particle["x"] - view.left) * scale_x + offset[0]
-            y = (particle["y"] - view.top) * scale_y + offset[1]
+            x = target.left + (particle["x"] - view.left) * scale_x + offset[0]
+            y = target.top + (particle["y"] - view.top) * scale_y + offset[1]
             pygame.draw.rect(surface, particle["color"], (round(x) - size // 2, round(y) - size // 2, size, size))
 
 
@@ -60,36 +67,38 @@ class CatchCamera:
 
     def update(self, dt: float):
         if self.focus is not None:
-            self.elapsed = min(settings.CATCH_ZOOM_SECONDS, self.elapsed + dt)
+            self.elapsed += dt
 
-    def progress(self) -> float:
+    def eased(self, seconds: float) -> float:
         if self.focus is None:
             return 0.0
-        linear = self.elapsed / settings.CATCH_ZOOM_SECONDS
+        linear = min(1.0, self.elapsed / seconds)
         return linear * linear * (3 - 2 * linear)
 
-    def view(self) -> pygame.Rect:
-        width, height = settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT
-        ease = self.progress()
+    def view(self, area: pygame.Rect) -> pygame.Rect:
+        ease = self.eased(settings.CATCH_ZOOM_SECONDS)
         if ease == 0:
-            return pygame.Rect(0, 0, width, height)
+            return pygame.Rect(area)
         zoom = 1 + (settings.CATCH_ZOOM - 1) * ease
-        view_width, view_height = width / zoom, height / zoom
-        center_x = width / 2 + (self.focus[0] - width / 2) * ease
-        center_y = height / 2 + (self.focus[1] - height / 2) * ease
-        left = min(max(center_x - view_width / 2, 0), width - view_width)
-        top = min(max(center_y - view_height / 2, 0), height - view_height)
-        return pygame.Rect(round(left), round(top), round(view_width), round(view_height))
+        width, height = area.width / zoom, area.height / zoom
+        center_x = area.centerx + (self.focus[0] - area.centerx) * ease
+        center_y = area.centery + (self.focus[1] - area.centery) * ease
+        return pygame.Rect(round(center_x - width / 2), round(center_y - height / 2), round(width), round(height))
 
-    def frame(self, canvas: pygame.Surface) -> pygame.Surface:
-        ease = self.progress()
-        if ease == 0:
-            return canvas
-        image = pygame.transform.scale(canvas.subsurface(self.view()), canvas.get_size())
-        gray = pygame.transform.grayscale(image)
-        gray.set_alpha(round(255 * ease))
-        image.blit(gray, (0, 0))
-        return image
+    def zoomed(self, canvas: pygame.Surface, area: pygame.Rect, background: tuple) -> pygame.Surface:
+        view = self.view(area)
+        sample = pygame.Surface(view.size)
+        sample.fill(background)
+        sample.blit(canvas, (-view.left, -view.top))
+        return pygame.transform.scale(sample, area.size)
+
+    def desaturate(self, frame: pygame.Surface):
+        amount = self.eased(settings.CATCH_GRAY_SECONDS)
+        if amount == 0:
+            return
+        gray = pygame.transform.grayscale(frame)
+        gray.set_alpha(round(255 * amount))
+        frame.blit(gray, (0, 0))
 
 
 class GhostFlyAway:
@@ -102,7 +111,7 @@ class GhostFlyAway:
         return bool(self.ghosts)
 
     def start(self, ghosts: list):
-        self.ghosts = list(ghosts)
+        self.ghosts = [(sprite, _body_mask(sprite), center) for sprite, center in ghosts]
         self.elapsed = 0.0
 
     def update(self, dt: float):
@@ -110,14 +119,16 @@ class GhostFlyAway:
             self.elapsed += dt
 
     def draw(self, surface: pygame.Surface, tile_size: int):
-        for order, (sprite, center) in enumerate(self.ghosts):
+        for order, (sprite, body, center) in enumerate(self.ghosts):
             progress = (self.elapsed - order * settings.ESCAPE_GHOST_STAGGER) / settings.ESCAPE_GHOST_SECONDS
             progress = min(max(progress, 0.0), 1.0)
             if progress >= 1:
                 continue
             whiteness = round(255 * min(1.0, progress / settings.ESCAPE_GHOST_WHITEN_SHARE))
+            whitening = body.copy()
+            whitening.fill((whiteness, whiteness, whiteness), special_flags=pygame.BLEND_RGB_MULT)
             image = sprite.copy()
-            image.fill((whiteness, whiteness, whiteness), special_flags=pygame.BLEND_RGB_ADD)
+            image.blit(whitening, (0, 0), special_flags=pygame.BLEND_RGB_ADD)
             fade_from = 1 - settings.ESCAPE_GHOST_FADE_SHARE
             if progress > fade_from:
                 image.set_alpha(round(255 * (1 - (progress - fade_from) / settings.ESCAPE_GHOST_FADE_SHARE)))
@@ -125,18 +136,33 @@ class GhostFlyAway:
             surface.blit(image, image.get_rect(center=(center[0], center[1] - rise)))
 
 
+def _body_mask(sprite: pygame.Surface) -> pygame.Surface:
+    mask = pygame.Surface(sprite.get_size())
+    mask.fill((0, 0, 0))
+    for x in range(sprite.get_width()):
+        for y in range(sprite.get_height()):
+            pixel = sprite.get_at((x, y))
+            if pixel.a and tuple(pixel)[:3] != settings.GHOST_PUPIL_COLOR:
+                mask.set_at((x, y), (255, 255, 255))
+    return mask
+
+
 class Shake:
     def __init__(self):
+        self.seconds = 1.0
+        self.pixels = 0
         self.seconds_left = 0.0
 
-    def start(self):
-        self.seconds_left = settings.CATCH_SHAKE_SECONDS
+    def start(self, seconds: float, pixels: int):
+        self.seconds = seconds
+        self.pixels = pixels
+        self.seconds_left = seconds
 
     def update(self, dt: float):
         self.seconds_left = max(0.0, self.seconds_left - dt)
 
     def offset(self) -> tuple:
-        reach = round(settings.CATCH_SHAKE_PIXELS * self.seconds_left / settings.CATCH_SHAKE_SECONDS)
+        reach = round(self.pixels * self.seconds_left / self.seconds)
         return random.randint(-reach, reach), random.randint(-reach, reach)
 
 
