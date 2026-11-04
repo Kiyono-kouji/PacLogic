@@ -3,11 +3,12 @@ import pygame
 from src.core import settings
 from src.logic import blocks
 from src.logic.route import route_costs
-from src.logic.sim import RUNNING
+from src.logic.sim import CAUGHT, RUNNING
 from src.scenes import menu_scene, result_scene
 from src.scenes.base_scene import BaseScene
 from src.ui.board import Board
 from src.ui.button import Button
+from src.ui.effects import Flash, Particles, Shake
 from src.ui.hud import HUD
 from src.ui.label import Label
 from src.ui.panel import Panel
@@ -31,6 +32,11 @@ class PlayScene(BaseScene):
             self.pause_button,
             Button(settings.PLAY_MENU_RECT, self.back_to_menu, "Menu"),
         ]
+        self.canvas = pygame.Surface((settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT))
+        self.particles = Particles()
+        self.shake = Shake()
+        self.catch_flash = Flash(settings.CATCH_FLASH_COLOR, settings.CATCH_FLASH_ALPHA, settings.CATCH_FLASH_SECONDS, False)
+        self.end_flash = Flash(settings.END_FLASH_COLOR, 255, settings.END_FLASH_OUT_SECONDS, True)
         self.show_status()
 
     def toggle_pause(self):
@@ -60,14 +66,28 @@ class PlayScene(BaseScene):
             return
         self.forward_event(event)
 
+    def celebrate_catch(self):
+        self.particles.burst(self.board.map_view.tile_center(self.sim.pac_tile))
+        self.shake.start()
+        self.catch_flash.start()
+
+    def update_effects(self, dt: float):
+        self.particles.update(dt)
+        self.shake.update(dt)
+        self.catch_flash.update(dt)
+        self.end_flash.update(dt)
+
     def update(self, dt: float):
         self.update_ui(dt)
+        self.update_effects(dt)
         if self.paused:
             return
         # Add up real seconds; a tick runs every PLAY_TICK_SECONDS (1/6 s), whatever the FPS.
         self.tick_timer += dt
         if self.sim.status != RUNNING:
-            if self.tick_timer >= settings.PLAY_END_DELAY:
+            if self.tick_timer >= settings.PLAY_END_DELAY and not self.end_flash.started:
+                self.end_flash.start()
+            if self.end_flash.done:
                 self.game.change_scene(result_scene.ResultScene(self.game, self.session, self.sim))
             return
         if self.tick_timer < settings.PLAY_TICK_SECONDS:
@@ -79,8 +99,15 @@ class PlayScene(BaseScene):
         self.show_status()
         if self.sim.status != RUNNING:
             self.tick_timer = 0.0
+            if self.sim.status == CAUGHT:
+                self.celebrate_catch()
 
     def draw(self, surface: pygame.Surface):
+        self.canvas.fill(settings.BG_COLOR)
+        self.board.draw(self.canvas, self.sim.pellets, self.route)
+        self.particles.draw(self.canvas)
+        self.draw_ui(self.canvas)
         surface.fill(settings.BG_COLOR)
-        self.board.draw(surface, self.sim.pellets, self.route)
-        self.draw_ui(surface)
+        surface.blit(self.canvas, self.shake.offset())
+        self.catch_flash.draw(surface)
+        self.end_flash.draw(surface)
