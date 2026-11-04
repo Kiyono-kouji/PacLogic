@@ -5,6 +5,7 @@ from src.logic.sim import score_breakdown, total_score
 from src.scenes import menu_scene, preview_scene
 from src.scenes.base_scene import BaseScene
 from src.ui.button import Button
+from src.ui.effects import Flash
 from src.ui.hud import OUTCOME_TEXT
 from src.ui.label import Label
 from src.ui.panel import Panel
@@ -29,6 +30,12 @@ class ResultScene(BaseScene):
             Button(settings.RESULT_AGAIN_RECT, self.play_again, "Play again"),
             Button(settings.RESULT_MENU_RECT, self.back_to_menu, "Menu"),
         ]
+        self.flash = Flash(settings.END_FLASH_COLOR, 255, settings.END_FLASH_IN_SECONDS, False)
+        self.flash.start()
+
+    def update(self, dt: float):
+        self.update_ui(dt)
+        self.flash.update(dt)
 
     def score_labels(self, rows: list) -> list:
         labels = []
@@ -49,3 +56,4 @@ class ResultScene(BaseScene):
     def draw(self, surface: pygame.Surface):
         surface.fill(settings.BG_COLOR)
         self.draw_ui(surface)
+        self.flash.draw(surface)
