@@ -1,5 +1,8 @@
+import math
+
 import pygame
 
+from src.core import settings
 from src.entities.ghost import Ghost
 from src.entities.pac_man import PacMan
 from src.logic.grid import Level
@@ -41,3 +44,23 @@ class Board(Component):
         for ghost in self.ghosts:
             ghost.draw(surface)
         self.pac_man.draw(surface)
+
+    def draw_ghost_markers(self, surface: pygame.Surface):
+        tile = self.map_view.tile_size
+        wave = math.sin(math.tau * pygame.time.get_ticks() / settings.GHOST_MARKER_BOB_MS)
+        lift = settings.GHOST_MARKER_BOB * tile * (wave + 1) / 2
+        half_width = settings.GHOST_MARKER_WIDTH * tile / 2
+        for ghost in self.ghosts:
+            center_x, center_y = self.map_view.tile_center(ghost.tile)
+            tip_y = center_y - tile / 2 - settings.GHOST_MARKER_GAP * tile - lift
+            base_y = tip_y - settings.GHOST_MARKER_HEIGHT * tile
+            points = [(center_x - half_width, base_y), (center_x + half_width, base_y), (center_x, tip_y)]
+            pygame.draw.polygon(surface, _marker_color(ghost), points)
+            pygame.draw.polygon(surface, settings.GHOST_MARKER_OUTLINE_COLOR, points, 1)
+
+
+def _marker_color(ghost: Ghost) -> tuple:
+    color = settings.GHOST_COLORS[ghost.index % len(settings.GHOST_COLORS)]
+    if ghost.selected:
+        return color
+    return tuple(round(channel * settings.GHOST_MARKER_DIM) for channel in color)
