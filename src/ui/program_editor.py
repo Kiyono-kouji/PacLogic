@@ -100,13 +100,26 @@ class ProgramEditor(Component):
         self.program.append({**block, "depth": depth})
         self.scroll = self.scroll_limit()
 
+    def block_topleft(self, index: int) -> tuple[int, int]:
+        tops = block_view.program_layout(self.program)[0]
+        origin = self.origin()
+        return origin[0] + self.program[index]["depth"] * settings.INDENT, origin[1] + tops[index]
+
+    def on_count_field(self, index: int, position: tuple[int, int]) -> bool:
+        if self.program[index]["type"] not in blocks.COUNT_RANGES:
+            return False
+        field = block_view.count_field_rect(block_view.block_rect(self.block_topleft(index)))
+        return field.collidepoint(position)
+
     def release(self, position: tuple[int, int]):
         if self.dragging:
             self.drop(position)
         elif self.source is None and self.held:
             self.add_to_end(self.held[0])
-        elif self.source is not None and self.program[self.source]["type"] in blocks.COUNT_RANGES:
+        elif self.source is not None and self.on_count_field(self.source, position):
             self.typing_index, self.typed = self.source, ""
+        elif self.source is not None:
+            self.delete(self.source)
         self.held, self.source, self.press_position, self.dragging = [], None, None, False
         self.scroll_by(0)
 
