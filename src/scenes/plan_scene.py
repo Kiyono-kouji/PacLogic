@@ -46,7 +46,7 @@ class PlanScene(BaseScene):
             return
         self.editor.program = self.session.programs[index]
         self.editor.scroll = 0
-        self.hint.set_text(f"Ghost {index + 1}: click or drag blocks in, click a number to change it, right-click to delete, Esc to close")
+        self.hint.set_text(f"Ghost {index + 1}: click a block to add or remove it, drag to move, click a number box to type, Esc to close")
 
     def lock_and_run(self):
         self.editor.finish()

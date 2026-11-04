@@ -19,6 +19,12 @@ def block_rect(position: tuple[int, int]) -> pygame.Rect:
     return pygame.Rect(position, (settings.BLOCK_WIDTH, settings.BLOCK_HEIGHT))
 
 
+def count_field_rect(rect: pygame.Rect) -> pygame.Rect:
+    field = pygame.Rect(0, 0, settings.COUNT_FIELD_WIDTH, rect.height - 2 * settings.COUNT_FIELD_INSET)
+    field.midright = (rect.right - settings.COUNT_FIELD_INSET, rect.centery)
+    return field
+
+
 # Works out the y of every block (tops) and every Repeat foot (feet), plus the total height.
 # The editor uses the same numbers for clicking, dropping and scrolling.
 def program_layout(program: list) -> tuple[list[int], dict[int, int], int]:
@@ -73,12 +79,12 @@ def draw_block(surface: pygame.Surface, block: dict, position: tuple[int, int], 
     surface.blit(label, label.get_rect(midleft=(rect.left + settings.BLOCK_TEXT_PADDING, rect.centery)))
     if typing is None and "count" not in block:
         return
-    count = font.render(
-        str(block["count"]) if typing is None else typing + "_",
-        True,
-        settings.BLOCK_TEXT_COLOR if typing is None else settings.BLOCK_TYPING_COLOR,
-    )
-    surface.blit(count, count.get_rect(midright=(rect.right - settings.BLOCK_TEXT_PADDING, rect.centery)))
+    field = count_field_rect(rect)
+    border = settings.COUNT_FIELD_BORDER_COLOR if typing is None else settings.COUNT_FIELD_TYPING_BORDER_COLOR
+    pygame.draw.rect(surface, settings.COUNT_FIELD_COLOR, field, border_radius=settings.COUNT_FIELD_RADIUS)
+    pygame.draw.rect(surface, border, field, settings.COUNT_FIELD_BORDER, border_radius=settings.COUNT_FIELD_RADIUS)
+    count = font.render(str(block["count"]) if typing is None else typing + "_", True, settings.BLOCK_TYPING_COLOR)
+    surface.blit(count, count.get_rect(center=field.center))
 
 
 def draw_program(
