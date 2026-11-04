@@ -1,6 +1,6 @@
 import pygame
 
-from src.core.resource_loader import load_sprite
+from src.core.resource_loader import load_character_sprite
 
 
 class Character:
@@ -17,5 +17,5 @@ class Character:
         raise NotImplementedError
 
     def draw(self, surface: pygame.Surface):
-        sprite = load_sprite(self.sprite_name(), self.map_view.tile_size)
+        sprite = load_character_sprite(self.sprite_name(), self.map_view.tile_size)
         surface.blit(sprite, sprite.get_rect(center=self.map_view.tile_center(self.tile)))

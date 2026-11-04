@@ -28,5 +28,16 @@ def load_sprite(name: str, tile: int) -> pygame.Surface:
     return pygame.transform.scale(image, (size, size))
 
 
+def character_size(tile: int) -> int:
+    return max(sprite_size(tile), int(tile * settings.CHARACTER_TILE_FILL))
+
+
+@lru_cache(maxsize=None)
+def load_character_sprite(name: str, tile: int) -> pygame.Surface:
+    image = pygame.image.load(settings.SPRITES_DIR / name).convert_alpha()
+    size = character_size(tile)
+    return pygame.transform.scale(image, (size, size))
+
+
 def animation_frame(frame_count: int, frame_ms: int) -> int:
     return pygame.time.get_ticks() // frame_ms % frame_count
