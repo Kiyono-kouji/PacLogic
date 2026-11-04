@@ -111,31 +111,69 @@ def ease_out_back(linear: float, overshoot: float) -> float:
     return 1 + (overshoot + 1) * (linear - 1) ** 3 + overshoot * (linear - 1) ** 2
 
 
-class DeadPacMan:
+def ease_in_back(linear: float, overshoot: float) -> float:
+    return (overshoot + 1) * linear ** 3 - overshoot * linear ** 2
+
+
+class GhostEatsPacMan:
     def __init__(self):
-        self.sprite: pygame.Surface | None = None
+        self.pac_man: pygame.Surface | None = None
+        self.ghost: pygame.Surface | None = None
         self.center = (0, 0)
         self.elapsed = 0.0
 
-    def start(self, sprite: pygame.Surface, center: tuple):
-        self.sprite = sprite
+    @property
+    def gulp_at(self) -> float:
+        return settings.EAT_BLINK_SECONDS + settings.EAT_SHRINK_SECONDS
+
+    def start(self, pac_man: pygame.Surface, ghost: pygame.Surface, center: tuple):
+        self.pac_man = pac_man
+        self.ghost = ghost
         self.center = center
         self.elapsed = 0.0
 
-    def update(self, dt: float):
-        if self.sprite is not None:
-            self.elapsed += dt
+    def update(self, dt: float) -> bool:
+        if self.pac_man is None:
+            return False
+        before = self.elapsed
+        self.elapsed += dt
+        return before < self.gulp_at <= self.elapsed
 
     def draw(self, surface: pygame.Surface):
-        if self.sprite is None:
+        if self.pac_man is None:
             return
-        image = self.sprite.copy()
-        if self.elapsed < settings.DEAD_PACMAN_BLINK_SECONDS:
-            if int(self.elapsed / settings.DEAD_PACMAN_BLINK_INTERVAL) % 2 == 0:
-                image.fill((255, 255, 255), special_flags=pygame.BLEND_RGB_ADD)
+        self.draw_ghost(surface)
+        self.draw_pac_man(surface)
+
+    def draw_ghost(self, surface: pygame.Surface):
+        since_gulp = self.elapsed - self.gulp_at
+        if since_gulp < 0:
+            opening = min(1.0, self.elapsed / self.gulp_at)
+            grow = 1 + (settings.EAT_GHOST_OPEN - 1) * (1 - (1 - opening) ** 3)
+            width_scale = height_scale = grow
         else:
-            shade = settings.DEAD_PACMAN_SHADE
-            image.fill((shade, shade, shade), special_flags=pygame.BLEND_RGB_MULT)
+            decay = math.exp(-settings.EAT_GULP_DAMPING * since_gulp)
+            grow = 1 + (settings.EAT_GHOST_OPEN - 1) * decay * math.cos(settings.EAT_GULP_SPEED * since_gulp)
+            squash = settings.EAT_GULP_SQUASH * decay * math.sin(settings.EAT_GULP_SPEED * since_gulp)
+            width_scale, height_scale = grow * (1 + squash), grow * (1 - squash)
+        size = self.ghost.get_width()
+        image = pygame.transform.scale(self.ghost, (max(1, round(size * width_scale)), max(1, round(size * height_scale))))
+        surface.blit(image, image.get_rect(center=self.center))
+
+    def draw_pac_man(self, surface: pygame.Surface):
+        if self.elapsed < settings.EAT_BLINK_SECONDS:
+            image = self.pac_man.copy()
+            if int(self.elapsed / settings.EAT_BLINK_INTERVAL) % 2 == 0:
+                image.fill((255, 255, 255), special_flags=pygame.BLEND_RGB_ADD)
+            surface.blit(image, image.get_rect(center=self.center))
+            return
+        linear = (self.elapsed - settings.EAT_BLINK_SECONDS) / settings.EAT_SHRINK_SECONDS
+        if linear >= 1:
+            return
+        scale = 1 - ease_in_back(linear, settings.EAT_SHRINK_OVERSHOOT)
+        if scale <= 0:
+            return
+        image = pygame.transform.rotozoom(self.pac_man, settings.EAT_SPIN_DEGREES * linear, scale)
         surface.blit(image, image.get_rect(center=self.center))
 
 
