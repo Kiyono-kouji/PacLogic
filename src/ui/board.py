@@ -18,6 +18,7 @@ class Board(Component):
         self.pac_man = PacMan(self.map_view)
         self.ghosts = [Ghost(self.map_view, index) for index in range(ghost_count)]
         self.ghosts_visible = True
+        self.hidden_ghost: int | None = None
         self.pac_man_visible = True
         self.show_start()
 
@@ -47,7 +48,8 @@ class Board(Component):
         self.map_view.draw_costs(surface, route, reveal)
         if self.ghosts_visible:
             for ghost in self.ghosts:
-                ghost.draw(surface)
+                if ghost.index != self.hidden_ghost:
+                    ghost.draw(surface)
         if self.pac_man_visible:
             self.pac_man.draw(surface)
 

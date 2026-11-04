@@ -9,7 +9,7 @@ from src.scenes import menu_scene, result_scene
 from src.scenes.base_scene import BaseScene
 from src.ui.board import Board
 from src.ui.button import Button
-from src.ui.effects import Banner, CatchCamera, DeadPacMan, EscapeCelebration, Flash, GhostFlyAway, Particles, Shake
+from src.ui.effects import Banner, CatchCamera, EscapeCelebration, Flash, GhostEatsPacMan, GhostFlyAway, Particles, Shake
 from src.ui.hud import HUD
 from src.ui.label import Label
 from src.ui.panel import Panel
@@ -41,7 +41,7 @@ class PlayScene(BaseScene):
         self.shake = Shake()
         self.fly_away = GhostFlyAway()
         self.camera = CatchCamera()
-        self.dead_pac_man = DeadPacMan()
+        self.eaten = GhostEatsPacMan()
         self.celebration = EscapeCelebration()
         self.banner = Banner()
         self.end_flash = Flash(settings.END_FLASH_COLOR, 255, settings.END_FLASH_OUT_SECONDS, True)
@@ -79,9 +79,13 @@ class PlayScene(BaseScene):
         self.particles.burst(pac_center, settings.CATCH_PARTICLE_COUNT, settings.CATCH_PARTICLE_COLORS)
         self.shake.start(settings.CATCH_SHAKE_SECONDS, settings.CATCH_SHAKE_PIXELS)
         self.camera.start(pac_center)
-        pac_sprite = load_character_sprite(self.board.pac_man.sprite_name(), self.board.map_view.tile_size)
-        self.dead_pac_man.start(pac_sprite, pac_center)
+        tile_size = self.board.map_view.tile_size
+        catcher = self.sim.ghost_tiles.index(self.sim.pac_tile)
+        pac_sprite = load_character_sprite(self.board.pac_man.sprite_name(), tile_size)
+        ghost_sprite = load_character_sprite(self.board.ghosts[catcher].sprite_name(), tile_size)
+        self.eaten.start(pac_sprite, ghost_sprite, pac_center)
         self.board.pac_man_visible = False
+        self.board.hidden_ghost = catcher
         self.effect_speed = settings.CATCH_SLOW_MOTION
         self.end_delay = settings.CATCH_END_DELAY
 
@@ -110,7 +114,8 @@ class PlayScene(BaseScene):
         self.fly_away.update(dt)
         self.shake.update(dt * self.effect_speed)
         self.camera.update(dt)
-        self.dead_pac_man.update(dt)
+        if self.eaten.update(dt):
+            self.particles.burst(self.eaten.center, settings.EAT_CRUMB_COUNT, settings.CATCH_PARTICLE_COLORS)
         self.celebration.update(dt)
         self.banner.update(dt)
         self.end_flash.update(dt)
@@ -150,7 +155,7 @@ class PlayScene(BaseScene):
         self.canvas.fill(settings.BG_COLOR)
         self.board.draw(self.canvas, self.sim.pellets, self.route)
         self.fly_away.draw(self.canvas, self.board.map_view.tile_size)
-        self.dead_pac_man.draw(self.canvas)
+        self.eaten.draw(self.canvas)
         area = self.board.map_view.rect
         self.celebration.draw(self.canvas)
         view = self.camera.view(area)
