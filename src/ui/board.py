@@ -39,10 +39,12 @@ class Board(Component):
         tile = self.map_view.tile_at(mouse_position)
         return next((ghost.index for ghost in self.ghosts if ghost.tile == tile), None)
 
-    def draw(self, surface: pygame.Surface, pellets=None, route=()):
+    def draw(self, surface: pygame.Surface, pellets=None, route=(), reveal_seconds: float | None = None):
         route = list(route)
-        self.map_view.draw(surface, pellets, [tile for tile, _, _ in route])
-        self.map_view.draw_costs(surface, route)
+        tiles = [tile for tile, _, _ in route]
+        reveal = None if reveal_seconds is None else _route_reveal(tiles, reveal_seconds)
+        self.map_view.draw(surface, pellets, tiles, reveal)
+        self.map_view.draw_costs(surface, route, reveal)
         if self.ghosts_visible:
             for ghost in self.ghosts:
                 ghost.draw(surface)
@@ -61,6 +63,14 @@ class Board(Component):
             points = [(center_x - half_width, base_y), (center_x + half_width, base_y), (center_x, tip_y)]
             pygame.draw.polygon(surface, _marker_color(ghost), points)
             pygame.draw.polygon(surface, settings.GHOST_MARKER_OUTLINE_COLOR, points, 1)
+
+
+def _route_reveal(tiles: list, seconds: float) -> dict:
+    reveal = {}
+    for index, tile in enumerate(tiles):
+        started = seconds - index * settings.ROUTE_REVEAL_STEP
+        reveal.setdefault(tile, min(1.0, max(0.0, started / settings.ROUTE_REVEAL_POP_SECONDS)))
+    return reveal
 
 
 def _marker_color(ghost: Ghost) -> tuple:
