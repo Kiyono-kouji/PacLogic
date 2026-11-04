@@ -43,9 +43,9 @@ DIFFICULTIES = {
 
 LEVEL_FILES = ("easy.txt", "medium.txt", "hard.txt")
 WIN_MODES = (("Exit", False), ("Pellets", True))
-PLANNING_TIMES = (60, 90, 120, 180)
+PLANNING_TIMES = (60, 75, 90, 105, 120, 135, 150, 165, 180)
 RANDOM_MAZE_CHOICES = (("Off", False), ("On", True))
-OPTION_DEFAULTS = {"level": 0, "random": 0, "difficulty": 0, "ghosts": 3, "mode": 0, "time": 1}
+OPTION_DEFAULTS = {"level": 0, "random": 0, "difficulty": 0, "ghosts": 3, "mode": 0, "time": 8}
 
 RANDOM_MAZE_SIZES = {"easy": (21, 15), "medium": (27, 19), "hard": (31, 21)}
 RANDOM_PELLET_COUNTS = {"easy": 3, "medium": 4, "hard": 6}
