@@ -4,12 +4,12 @@ from src.core import settings
 from src.core.resource_loader import load_character_sprite
 from src.logic import blocks
 from src.logic.route import route_costs
-from src.logic.sim import CAUGHT, ESCAPED, RUNNING
+from src.logic.sim import BLOCKED, CAUGHT, ESCAPED, RUNNING
 from src.scenes import menu_scene, result_scene
 from src.scenes.base_scene import BaseScene
 from src.ui.board import Board
 from src.ui.button import Button
-from src.ui.effects import CatchCamera, DeadPacMan, EscapeCelebration, Flash, GhostFlyAway, Particles, Shake
+from src.ui.effects import Banner, CatchCamera, DeadPacMan, EscapeCelebration, Flash, GhostFlyAway, Particles, Shake
 from src.ui.hud import HUD
 from src.ui.label import Label
 from src.ui.panel import Panel
@@ -43,6 +43,7 @@ class PlayScene(BaseScene):
         self.camera = CatchCamera()
         self.dead_pac_man = DeadPacMan()
         self.celebration = EscapeCelebration()
+        self.banner = Banner()
         self.end_flash = Flash(settings.END_FLASH_COLOR, 255, settings.END_FLASH_OUT_SECONDS, True)
         self.show_status()
 
@@ -111,6 +112,7 @@ class PlayScene(BaseScene):
         self.camera.update(dt)
         self.dead_pac_man.update(dt)
         self.celebration.update(dt)
+        self.banner.update(dt)
         self.end_flash.update(dt)
 
     def update(self, dt: float):
@@ -139,6 +141,10 @@ class PlayScene(BaseScene):
                 self.celebrate_catch()
             if self.sim.status == ESCAPED:
                 self.send_ghosts_away()
+            if self.sim.status == BLOCKED:
+                self.end_delay = settings.BLOCKED_END_DELAY
+            title, subtitle, color, delay = settings.OUTCOME_BANNERS[self.sim.status]
+            self.banner.start(title, subtitle, color, delay, self.end_delay)
 
     def draw(self, surface: pygame.Surface):
         self.canvas.fill(settings.BG_COLOR)
@@ -146,7 +152,7 @@ class PlayScene(BaseScene):
         self.fly_away.draw(self.canvas, self.board.map_view.tile_size)
         self.dead_pac_man.draw(self.canvas)
         area = self.board.map_view.rect
-        self.celebration.draw(self.canvas, area.center)
+        self.celebration.draw(self.canvas)
         view = self.camera.view(area)
         zoomed = view != area
         self.frame.blit(self.canvas, (0, 0))
@@ -161,4 +167,6 @@ class PlayScene(BaseScene):
             surface.set_clip(area.move(offset))
         self.particles.draw(surface, view, area, offset)
         surface.set_clip(None)
+        pac_y = area.centery if self.camera.focus is not None else self.board.map_view.tile_center(self.sim.pac_tile)[1]
+        self.banner.draw(surface, area, pac_y)
         self.end_flash.draw(surface)
