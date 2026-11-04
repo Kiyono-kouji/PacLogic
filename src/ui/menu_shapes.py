@@ -60,3 +60,30 @@ def tag_surface(text: str, size: int, colors: tuple, padding: tuple, skew: int, 
     pygame.draw.polygon(surface, box_color, box)
     surface.blit(face, face.get_rect(center=(width // 2, height // 2)))
     return surface
+
+
+def wrap_text(text: str, font: pygame.font.Font, width: int) -> list:
+    lines = []
+    for paragraph in text.split("\n"):
+        line = ""
+        for word in paragraph.split(" "):
+            candidate = f"{line} {word}".strip()
+            if line and font.size(candidate)[0] > width:
+                lines.append(line)
+                line = word
+            else:
+                line = candidate
+        lines.append(line)
+    return lines
+
+
+def draw_lines(surface: pygame.Surface, lines: list, font: pygame.font.Font, color: tuple, topleft: tuple, line_height: int, characters: int | None = None):
+    left, top = topleft
+    remaining = sum(len(line) for line in lines) if characters is None else characters
+    for row, line in enumerate(lines):
+        if remaining <= 0:
+            return
+        shown = line[:remaining]
+        remaining -= len(line)
+        if shown:
+            surface.blit(font.render(shown, True, color), (left, top + row * line_height))

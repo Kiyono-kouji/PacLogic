@@ -4,7 +4,6 @@ from src.core import settings
 from src.core.session import Session
 from src.scenes.base_scene import BaseScene
 from src.scenes.menu_scene import MenuScene
-from src.scenes.tutorial_slides import load_tutorial_slides
 from src.ui.tutorial_button import TutorialButton
 from src.ui.tutorial_panel import TutorialPanel
 
@@ -19,7 +18,7 @@ class Game:
         self.clock: pygame.time.Clock = pygame.time.Clock()
         self.session: Session = Session()
         self.scene: BaseScene = MenuScene(self, self.session)
-        self.tutorial: TutorialPanel = TutorialPanel(load_tutorial_slides)
+        self.tutorial: TutorialPanel = TutorialPanel()
         self.tutorial_button: TutorialButton = TutorialButton(self.tutorial.open)
         self.running: bool = True
 
@@ -49,7 +48,9 @@ class Game:
                 else:
                     self.handle_event(event)
             # While the tutorial is open the scene isn't updated, so the game is paused.
-            if not self.tutorial.visible:
+            if self.tutorial.visible:
+                self.tutorial.update(dt)
+            else:
                 self.scene.update(dt)
             self.scene.draw(self.screen)
             if self.scene.shows_tutorial_button:
