@@ -78,7 +78,7 @@ class CatchCamera:
     def zoom_progress(self) -> float:
         if self.focus is None:
             return 0.0
-        return _ease_in_out_back(min(1.0, self.elapsed / settings.CATCH_ZOOM_SECONDS))
+        return _ease_out_back(min(1.0, self.elapsed / settings.CATCH_ZOOM_SECONDS))
 
     def view(self, area: pygame.Rect) -> pygame.Rect:
         ease = self.zoom_progress()
@@ -106,11 +106,37 @@ class CatchCamera:
         frame.blit(gray, (0, 0))
 
 
-def _ease_in_out_back(linear: float) -> float:
-    overshoot = settings.CATCH_ZOOM_OVERSHOOT * 1.525
-    if linear < 0.5:
-        return (2 * linear) ** 2 * ((overshoot + 1) * 2 * linear - overshoot) / 2
-    return ((2 * linear - 2) ** 2 * ((overshoot + 1) * (2 * linear - 2) + overshoot) + 2) / 2
+def _ease_out_back(linear: float) -> float:
+    overshoot = settings.CATCH_ZOOM_OVERSHOOT
+    return 1 + (overshoot + 1) * (linear - 1) ** 3 + overshoot * (linear - 1) ** 2
+
+
+class DeadPacMan:
+    def __init__(self):
+        self.sprite: pygame.Surface | None = None
+        self.center = (0, 0)
+        self.elapsed = 0.0
+
+    def start(self, sprite: pygame.Surface, center: tuple):
+        self.sprite = sprite
+        self.center = center
+        self.elapsed = 0.0
+
+    def update(self, dt: float):
+        if self.sprite is not None:
+            self.elapsed += dt
+
+    def draw(self, surface: pygame.Surface):
+        if self.sprite is None:
+            return
+        image = self.sprite.copy()
+        if self.elapsed < settings.DEAD_PACMAN_BLINK_SECONDS:
+            if int(self.elapsed / settings.DEAD_PACMAN_BLINK_INTERVAL) % 2 == 0:
+                image.fill((255, 255, 255), special_flags=pygame.BLEND_RGB_ADD)
+        else:
+            shade = settings.DEAD_PACMAN_SHADE
+            image.fill((shade, shade, shade), special_flags=pygame.BLEND_RGB_MULT)
+        surface.blit(image, image.get_rect(center=self.center))
 
 
 class GhostFlyAway:

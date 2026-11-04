@@ -18,6 +18,7 @@ class Board(Component):
         self.pac_man = PacMan(self.map_view)
         self.ghosts = [Ghost(self.map_view, index) for index in range(ghost_count)]
         self.ghosts_visible = True
+        self.pac_man_visible = True
         self.show_start()
 
     def show_start(self):
@@ -45,7 +46,8 @@ class Board(Component):
         if self.ghosts_visible:
             for ghost in self.ghosts:
                 ghost.draw(surface)
-        self.pac_man.draw(surface)
+        if self.pac_man_visible:
+            self.pac_man.draw(surface)
 
     def draw_ghost_markers(self, surface: pygame.Surface):
         tile = self.map_view.tile_size

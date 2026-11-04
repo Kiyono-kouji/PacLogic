@@ -9,7 +9,7 @@ from src.scenes import menu_scene, result_scene
 from src.scenes.base_scene import BaseScene
 from src.ui.board import Board
 from src.ui.button import Button
-from src.ui.effects import CatchCamera, Flash, GhostFlyAway, Particles, Shake
+from src.ui.effects import CatchCamera, DeadPacMan, Flash, GhostFlyAway, Particles, Shake
 from src.ui.hud import HUD
 from src.ui.label import Label
 from src.ui.panel import Panel
@@ -41,6 +41,7 @@ class PlayScene(BaseScene):
         self.shake = Shake()
         self.fly_away = GhostFlyAway()
         self.camera = CatchCamera()
+        self.dead_pac_man = DeadPacMan()
         self.end_flash = Flash(settings.END_FLASH_COLOR, 255, settings.END_FLASH_OUT_SECONDS, True)
         self.show_status()
 
@@ -76,6 +77,9 @@ class PlayScene(BaseScene):
         self.particles.burst(pac_center, settings.CATCH_PARTICLE_COUNT, settings.CATCH_PARTICLE_COLORS)
         self.shake.start(settings.CATCH_SHAKE_SECONDS, settings.CATCH_SHAKE_PIXELS)
         self.camera.start(pac_center)
+        pac_sprite = load_character_sprite(self.board.pac_man.sprite_name(), self.board.map_view.tile_size)
+        self.dead_pac_man.start(pac_sprite, pac_center)
+        self.board.pac_man_visible = False
         self.effect_speed = settings.CATCH_SLOW_MOTION
         self.end_delay = settings.CATCH_END_DELAY
 
@@ -100,6 +104,7 @@ class PlayScene(BaseScene):
         self.fly_away.update(dt)
         self.shake.update(dt * self.effect_speed)
         self.camera.update(dt)
+        self.dead_pac_man.update(dt)
         self.end_flash.update(dt)
 
     def update(self, dt: float):
@@ -133,6 +138,7 @@ class PlayScene(BaseScene):
         self.canvas.fill(settings.BG_COLOR)
         self.board.draw(self.canvas, self.sim.pellets, self.route)
         self.fly_away.draw(self.canvas, self.board.map_view.tile_size)
+        self.dead_pac_man.draw(self.canvas)
         area = self.board.map_view.rect
         view = self.camera.view(area)
         zoomed = view != area
