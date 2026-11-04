@@ -47,9 +47,12 @@ PLANNING_TIMES = (60, 90, 120, 180)
 RANDOM_MAZE_CHOICES = (("Off", False), ("On", True))
 OPTION_DEFAULTS = {"level": 0, "random": 0, "difficulty": 0, "ghosts": 3, "mode": 0, "time": 1}
 
+RANDOM_MAZE_SIZES = {"easy": (21, 15), "medium": (27, 19), "hard": (31, 21)}
 RANDOM_MAX_ATTEMPTS = 200
-RANDOM_LOOP_CHANCE = 0.1
+RANDOM_LOOP_CHANCE = 0.5
 RANDOM_EXIT_MIN_FRACTION = 0.8
+RANDOM_END_MIN_EXITS = 3
+RANDOM_MIN_SEPARATE_ROUTES = 3
 RANDOM_GHOST_MIN_DISTANCE = 8
 RANDOM_MAX_PLAN_NODES = 12000
 RANDOM_MAX_INTERCEPT_BLOCKS = min(config["block_limit"] for config in DIFFICULTIES.values())

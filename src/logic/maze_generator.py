@@ -1,5 +1,6 @@
 import dataclasses
 import itertools
+from collections import deque
 import math
 import random
 
@@ -37,15 +38,44 @@ def intercept_moves(level: Level, ghost: tuple, route: list) -> list | None:
     return None
 
 
+def separate_routes(level: Level) -> int:
+    used = set()
+    count = 0
+    while True:
+        parents = {level.start: None}
+        queue = deque([level.start])
+        while queue and level.goal not in parents:
+            tile = queue.popleft()
+            for _, next_tile in level.adjacency[tile]:
+                if next_tile not in parents and ((tile, next_tile) not in used or (next_tile, tile) in used):
+                    parents[next_tile] = tile
+                    queue.append(next_tile)
+        if level.goal not in parents:
+            return count
+        tile = level.goal
+        while parents[tile] is not None:
+            previous = parents[tile]
+            if (tile, previous) in used:
+                used.discard((tile, previous))
+            else:
+                used.add((previous, tile))
+            tile = previous
+        count += 1
+
+
 def block_count(moves: list) -> int:
     runs = [len(list(group)) for _, group in itertools.groupby(moves)]
     return sum(1 if length == 1 else 2 * math.ceil(length / settings.REPEAT_MAX) for length in runs)
 
 
 def _attempt(template: Level, rng: random.Random) -> Level | None:
-    floor = _carve_floor(template.width, template.height, rng)
-    _open_loops(floor, template.width, template.height, rng)
-    level = _with_start_and_exit(template, floor, rng)
+    width, height = settings.RANDOM_MAZE_SIZES.get(template.name, (template.width, template.height))
+    floor = _carve_floor(width, height, rng)
+    _open_loops(floor, width, height, rng)
+    _remove_dead_ends(floor, width, height, rng)
+    level = _with_start_and_exit(template, floor, width, height, rng)
+    if level is None or separate_routes(level) < settings.RANDOM_MIN_SEPARATE_ROUTES:
+        return None
     level = _with_pellets(level, floor, len(template.pellets), rng)
     if level is None:
         return None
@@ -91,13 +121,28 @@ def _open_loops(floor: set, width: int, height: int, rng: random.Random):
                 floor.add((x, y))
 
 
-def _with_start_and_exit(template: Level, floor: set, rng: random.Random) -> Level:
-    walls = frozenset((x, y) for y in range(template.height) for x in range(template.width) if (x, y) not in floor)
+def _remove_dead_ends(floor: set, width: int, height: int, rng: random.Random):
+    for x, y in sorted(floor):
+        if x % 2 == 0 or y % 2 == 0:
+            continue
+        open_sides = [(dx, dy) for dx, dy in CELL_STEPS if (x + dx // 2, y + dy // 2) in floor]
+        if len(open_sides) != 1:
+            continue
+        closed_sides = [
+            (x + dx // 2, y + dy // 2)
+            for dx, dy in CELL_STEPS
+            if 0 < x + dx < width - 1 and 0 < y + dy < height - 1 and (x + dx // 2, y + dy // 2) not in floor
+        ]
+        floor.add(rng.choice(closed_sides))
+
+
+def _with_start_and_exit(template: Level, floor: set, width: int, height: int, rng: random.Random) -> Level | None:
+    walls = frozenset((x, y) for y in range(height) for x in range(width) if (x, y) not in floor)
     corner = min(floor)
     blank = Level(
         name=f"random {template.name}",
-        width=template.width,
-        height=template.height,
+        width=width,
+        height=height,
         walls=walls,
         start=corner,
         goal=corner,
@@ -106,12 +151,16 @@ def _with_start_and_exit(template: Level, floor: set, rng: random.Random) -> Lev
     )
     tables = {tile: maze_distances(blank, tile) for tile in sorted(floor)}
     longest = max(max(table.values()) for table in tables.values())
+    junctions = {tile for tile in floor if len(blank.adjacency[tile]) >= settings.RANDOM_END_MIN_EXITS}
     pairs = [
         (start, goal)
         for start, table in tables.items()
+        if start in junctions
         for goal, steps in table.items()
-        if steps >= settings.RANDOM_EXIT_MIN_FRACTION * longest
+        if goal in junctions and steps >= settings.RANDOM_EXIT_MIN_FRACTION * longest
     ]
+    if not pairs:
+        return None
     start, goal = rng.choice(pairs)
     return dataclasses.replace(blank, start=start, goal=goal)
 
