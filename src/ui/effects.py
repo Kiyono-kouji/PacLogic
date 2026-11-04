@@ -237,3 +237,32 @@ class Flash:
             return
         self.layer.set_alpha(round(self.peak_alpha * strength))
         surface.blit(self.layer, (0, 0))
+
+
+class WarningPulse:
+    def __init__(self):
+        self.glow = _edge_glow()
+        self.elapsed = 0.0
+        self.strength = 0.0
+
+    def update(self, dt: float, active: bool):
+        step = dt / settings.TIME_WARNING_FADE_SECONDS
+        self.strength = min(1.0, self.strength + step) if active else max(0.0, self.strength - step)
+        self.elapsed = self.elapsed + dt if self.strength > 0 else 0.0
+
+    def draw(self, surface: pygame.Surface):
+        if self.strength <= 0:
+            return
+        wave = 0.5 - 0.5 * math.cos(math.tau * self.elapsed / settings.TIME_WARNING_PULSE_SECONDS)
+        level = settings.TIME_WARNING_LOW + (settings.TIME_WARNING_HIGH - settings.TIME_WARNING_LOW) * wave
+        self.glow.set_alpha(round(255 * level * self.strength))
+        surface.blit(self.glow, (0, 0))
+
+
+def _edge_glow() -> pygame.Surface:
+    glow = pygame.Surface((settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT), pygame.SRCALPHA)
+    full = glow.get_rect()
+    for inset in range(settings.TIME_WARNING_EDGE):
+        alpha = round(settings.TIME_WARNING_EDGE_ALPHA * (1 - inset / settings.TIME_WARNING_EDGE) ** 2)
+        pygame.draw.rect(glow, (*settings.TIME_WARNING_COLOR, alpha), full.inflate(-2 * inset, -2 * inset), 1)
+    return glow
