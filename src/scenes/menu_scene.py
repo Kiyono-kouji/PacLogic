@@ -10,6 +10,7 @@ from src.ui.panel import Panel
 
 OPTION_NAMES = {
     "level": "Level",
+    "random": "Random maze",
     "difficulty": "AI",
     "ghosts": "Ghosts",
     "mode": "Mode",
@@ -83,7 +84,7 @@ class MenuScene(BaseScene):
         self.ui = self.menu_ui
 
     def start(self):
-        self.session.prepare()
+        self.session.prepare(new_maze=True)
         self.game.change_scene(preview_scene.PreviewScene(self.game, self.session))
 
     def handle_event(self, event: pygame.event.Event):
