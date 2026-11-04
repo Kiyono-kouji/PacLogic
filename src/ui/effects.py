@@ -4,6 +4,7 @@ import random
 import pygame
 
 from src.core import settings
+from src.core.resource_loader import load_font
 
 
 class Particles:
@@ -265,3 +266,80 @@ def _edge_glow() -> pygame.Surface:
         alpha = round(settings.TIME_WARNING_EDGE_ALPHA * (1 - inset / settings.TIME_WARNING_EDGE) ** 2)
         pygame.draw.rect(glow, (*settings.TIME_WARNING_COLOR, alpha), full.inflate(-2 * inset, -2 * inset), 1)
     return glow
+
+
+class EscapeCelebration:
+    def __init__(self):
+        self.sprite: pygame.Surface | None = None
+        self.center = (0, 0)
+        self.tile_size = 1
+        self.banner: pygame.Surface | None = None
+        self.rings = pygame.Surface((settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT), pygame.SRCALPHA)
+        self.elapsed = 0.0
+
+    @property
+    def started(self) -> bool:
+        return self.sprite is not None
+
+    def start(self, sprite: pygame.Surface, center: tuple, tile_size: int):
+        self.sprite = sprite
+        self.center = center
+        self.tile_size = tile_size
+        self.banner = _banner()
+        self.elapsed = 0.0
+
+    def update(self, dt: float):
+        if self.started:
+            self.elapsed += dt
+
+    def draw(self, surface: pygame.Surface, banner_center: tuple):
+        if not self.started:
+            return
+        self.draw_rings(surface)
+        self.draw_pac_man(surface)
+        self.draw_banner(surface, banner_center)
+
+    def draw_rings(self, surface: pygame.Surface):
+        self.rings.fill((0, 0, 0, 0))
+        for index in range(settings.ESCAPE_RING_COUNT):
+            linear = (self.elapsed - index * settings.ESCAPE_RING_STAGGER) / settings.ESCAPE_RING_SECONDS
+            if not 0 < linear < 1:
+                continue
+            radius = round((1 - (1 - linear) ** 3) * settings.ESCAPE_RING_TILES * self.tile_size)
+            width = max(1, round(settings.ESCAPE_RING_WIDTH * (1 - linear)))
+            color = settings.ESCAPE_RING_COLORS[index % len(settings.ESCAPE_RING_COLORS)]
+            if radius > width:
+                pygame.draw.circle(self.rings, (*color, round(255 * (1 - linear))), self.center, radius, width)
+        surface.blit(self.rings, (0, 0))
+
+    def draw_pac_man(self, surface: pygame.Surface):
+        wobble = math.exp(-settings.ESCAPE_BOUNCE_DAMPING * self.elapsed) * math.sin(settings.ESCAPE_BOUNCE_SPEED * self.elapsed)
+        size = max(1, round(self.sprite.get_width() * (1 + settings.ESCAPE_BOUNCE_AMOUNT * wobble)))
+        image = pygame.transform.scale(self.sprite, (size, size))
+        surface.blit(image, image.get_rect(center=self.center))
+
+    def draw_banner(self, surface: pygame.Surface, center: tuple):
+        shown = self.elapsed - settings.ESCAPE_BANNER_DELAY
+        if shown <= 0:
+            return
+        grow = ease_out_back(min(1.0, shown / settings.ESCAPE_BANNER_IN_SECONDS), settings.ESCAPE_BANNER_OVERSHOOT)
+        width = round(self.banner.get_width() * grow)
+        height = round(self.banner.get_height() * grow)
+        if width <= 0 or height <= 0:
+            return
+        image = pygame.transform.smoothscale(self.banner, (width, height))
+        fade_from = settings.ESCAPE_END_DELAY - settings.ESCAPE_BANNER_OUT_SECONDS
+        if self.elapsed > fade_from:
+            image.set_alpha(round(255 * max(0.0, 1 - (self.elapsed - fade_from) / settings.ESCAPE_BANNER_OUT_SECONDS)))
+        surface.blit(image, image.get_rect(center=center))
+
+
+def _banner() -> pygame.Surface:
+    font = load_font(settings.ESCAPE_BANNER_FONT_SIZE)
+    text = font.render(settings.ESCAPE_BANNER_TEXT, True, settings.ESCAPE_BANNER_COLOR)
+    shadow = font.render(settings.ESCAPE_BANNER_TEXT, True, settings.ESCAPE_BANNER_SHADOW_COLOR)
+    offset = settings.ESCAPE_BANNER_SHADOW
+    banner = pygame.Surface((text.get_width() + offset, text.get_height() + offset), pygame.SRCALPHA)
+    banner.blit(shadow, (offset, offset))
+    banner.blit(text, (0, 0))
+    return banner
