@@ -93,21 +93,27 @@ def _open_loops(floor: set, width: int, height: int, rng: random.Random):
 
 def _with_start_and_exit(template: Level, floor: set, rng: random.Random) -> Level:
     walls = frozenset((x, y) for y in range(template.height) for x in range(template.width) if (x, y) not in floor)
-    start = rng.choice(sorted(floor))
+    corner = min(floor)
     blank = Level(
         name=f"random {template.name}",
         width=template.width,
         height=template.height,
         walls=walls,
-        start=start,
-        goal=start,
+        start=corner,
+        goal=corner,
         ghosts=(),
         pellets=frozenset(),
     )
-    from_start = maze_distances(blank, start)
-    farthest = max(from_start.values())
-    exits = sorted(tile for tile, steps in from_start.items() if steps >= settings.RANDOM_EXIT_MIN_FRACTION * farthest)
-    return dataclasses.replace(blank, goal=rng.choice(exits))
+    tables = {tile: maze_distances(blank, tile) for tile in sorted(floor)}
+    longest = max(max(table.values()) for table in tables.values())
+    pairs = [
+        (start, goal)
+        for start, table in tables.items()
+        for goal, steps in table.items()
+        if steps >= settings.RANDOM_EXIT_MIN_FRACTION * longest
+    ]
+    start, goal = rng.choice(pairs)
+    return dataclasses.replace(blank, start=start, goal=goal)
 
 
 def _with_pellets(level: Level, floor: set, count: int, rng: random.Random) -> Level | None:
