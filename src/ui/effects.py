@@ -273,7 +273,6 @@ class EscapeCelebration:
         self.sprite: pygame.Surface | None = None
         self.center = (0, 0)
         self.tile_size = 1
-        self.banner: pygame.Surface | None = None
         self.rings = pygame.Surface((settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT), pygame.SRCALPHA)
         self.elapsed = 0.0
 
@@ -285,19 +284,17 @@ class EscapeCelebration:
         self.sprite = sprite
         self.center = center
         self.tile_size = tile_size
-        self.banner = _banner()
         self.elapsed = 0.0
 
     def update(self, dt: float):
         if self.started:
             self.elapsed += dt
 
-    def draw(self, surface: pygame.Surface, banner_center: tuple):
+    def draw(self, surface: pygame.Surface):
         if not self.started:
             return
         self.draw_rings(surface)
         self.draw_pac_man(surface)
-        self.draw_banner(surface, banner_center)
 
     def draw_rings(self, surface: pygame.Surface):
         self.rings.fill((0, 0, 0, 0))
@@ -318,28 +315,78 @@ class EscapeCelebration:
         image = pygame.transform.scale(self.sprite, (size, size))
         surface.blit(image, image.get_rect(center=self.center))
 
-    def draw_banner(self, surface: pygame.Surface, center: tuple):
-        shown = self.elapsed - settings.ESCAPE_BANNER_DELAY
-        if shown <= 0:
+class Banner:
+    def __init__(self):
+        self.text: pygame.Surface | None = None
+        self.delay = 0.0
+        self.end = 1.0
+        self.elapsed = 0.0
+        self.dim = pygame.Surface((settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT))
+        self.dim.fill(settings.BANNER_BAND_COLOR)
+
+    def start(self, title: str, subtitle: str, color: tuple, delay: float, end: float):
+        self.text = _banner_text(title, subtitle, color)
+        self.delay = delay
+        self.end = end
+        self.elapsed = 0.0
+
+    def update(self, dt: float):
+        if self.text is not None:
+            self.elapsed += dt
+
+    def strength(self) -> float:
+        shown = self.elapsed - self.delay
+        if self.text is None or shown <= 0:
+            return 0.0
+        fade_from = self.end - settings.BANNER_OUT_SECONDS
+        if self.elapsed > fade_from:
+            return max(0.0, 1 - (self.elapsed - fade_from) / settings.BANNER_OUT_SECONDS)
+        return 1.0
+
+    def draw(self, surface: pygame.Surface, area: pygame.Rect, avoid_y: float):
+        strength = self.strength()
+        if strength <= 0:
             return
-        grow = ease_out_back(min(1.0, shown / settings.ESCAPE_BANNER_IN_SECONDS), settings.ESCAPE_BANNER_OVERSHOOT)
-        width = round(self.banner.get_width() * grow)
-        height = round(self.banner.get_height() * grow)
+        share = settings.BANNER_UPPER if avoid_y > area.centery else settings.BANNER_LOWER
+        center = (area.centerx, round(area.top + area.height * share))
+        linear = min(1.0, (self.elapsed - self.delay) / settings.BANNER_IN_SECONDS)
+        opening = 1 - (1 - linear) ** 3
+        surface.set_clip(area)
+        self.dim.set_alpha(round(settings.BANNER_DIM_ALPHA * opening * strength))
+        surface.blit(self.dim, (0, 0))
+        band_height = round((self.text.get_height() + 2 * settings.BANNER_PADDING) * opening)
+        band = pygame.Rect(area.left, 0, area.width, band_height)
+        band.centery = center[1]
+        self.dim.set_alpha(round(settings.BANNER_BAND_ALPHA * strength))
+        surface.blit(self.dim, band.topleft, pygame.Rect(0, 0, band.width, band.height))
+        surface.set_clip(None)
+        grow = ease_out_back(linear, settings.BANNER_OVERSHOOT)
+        width, height = round(self.text.get_width() * grow), round(self.text.get_height() * grow)
         if width <= 0 or height <= 0:
             return
-        image = pygame.transform.smoothscale(self.banner, (width, height))
-        fade_from = settings.ESCAPE_END_DELAY - settings.ESCAPE_BANNER_OUT_SECONDS
-        if self.elapsed > fade_from:
-            image.set_alpha(round(255 * max(0.0, 1 - (self.elapsed - fade_from) / settings.ESCAPE_BANNER_OUT_SECONDS)))
+        image = pygame.transform.smoothscale(self.text, (width, height))
+        image.set_alpha(round(255 * strength))
         surface.blit(image, image.get_rect(center=center))
 
 
-def _banner() -> pygame.Surface:
-    font = load_font(settings.ESCAPE_BANNER_FONT_SIZE)
-    text = font.render(settings.ESCAPE_BANNER_TEXT, True, settings.ESCAPE_BANNER_COLOR)
-    shadow = font.render(settings.ESCAPE_BANNER_TEXT, True, settings.ESCAPE_BANNER_SHADOW_COLOR)
-    offset = settings.ESCAPE_BANNER_SHADOW
-    banner = pygame.Surface((text.get_width() + offset, text.get_height() + offset), pygame.SRCALPHA)
-    banner.blit(shadow, (offset, offset))
-    banner.blit(text, (0, 0))
+def _banner_text(title: str, subtitle: str, color: tuple) -> pygame.Surface:
+    offset = settings.BANNER_SHADOW
+    title_font = load_font(settings.BANNER_TITLE_SIZE)
+    subtitle_font = load_font(settings.BANNER_SUBTITLE_SIZE)
+    lines = [
+        (title_font.render(title, True, color), title_font.render(title, True, settings.BANNER_SHADOW_COLOR)),
+        (
+            subtitle_font.render(subtitle, True, settings.BANNER_SUBTITLE_COLOR),
+            subtitle_font.render(subtitle, True, settings.BANNER_SHADOW_COLOR),
+        ),
+    ]
+    width = max(text.get_width() for text, _ in lines) + offset
+    height = sum(text.get_height() for text, _ in lines) + settings.BANNER_LINE_GAP + offset
+    banner = pygame.Surface((width, height), pygame.SRCALPHA)
+    top = 0
+    for text, shadow in lines:
+        left = (width - offset - text.get_width()) // 2
+        banner.blit(shadow, (left + offset, top + offset))
+        banner.blit(text, (left, top))
+        top += text.get_height() + settings.BANNER_LINE_GAP
     return banner
