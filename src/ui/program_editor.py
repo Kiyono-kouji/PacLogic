@@ -92,9 +92,19 @@ class ProgramEditor(Component):
         moved = [{**block, "depth": block["depth"] + shift} for block in self.held]
         self.program[index:index] = moved
 
+    def add_to_end(self, block: dict):
+        if not blocks.can_add(self.program, self.limit):
+            self.flash.show("Block limit reached")
+            return
+        depth = blocks.depth_range(self.program, len(self.program))[1]
+        self.program.append({**block, "depth": depth})
+        self.scroll = self.scroll_limit()
+
     def release(self, position: tuple[int, int]):
         if self.dragging:
             self.drop(position)
+        elif self.source is None and self.held:
+            self.add_to_end(self.held[0])
         elif self.source is not None and self.program[self.source]["type"] in blocks.COUNT_RANGES:
             self.typing_index, self.typed = self.source, ""
         self.held, self.source, self.press_position, self.dragging = [], None, None, False
@@ -132,10 +142,12 @@ class ProgramEditor(Component):
         elif event.unicode.isdigit() and len(self.typed) < settings.COUNT_MAX_DIGITS:
             self.typed += event.unicode
 
-    def scroll_by(self, steps: int):
+    def scroll_limit(self) -> int:
         content = block_view.program_layout(self.program)[2] + settings.BLOCK_HEIGHT + 2 * settings.EDITOR_PADDING
-        limit = max(0, content - self.program_panel.rect.height)
-        self.scroll = max(0, min(limit, self.scroll - steps * settings.SCROLL_STEP))
+        return max(0, content - self.program_panel.rect.height)
+
+    def scroll_by(self, steps: int):
+        self.scroll = max(0, min(self.scroll_limit(), self.scroll - steps * settings.SCROLL_STEP))
 
     def handle_event(self, event: pygame.event.Event) -> bool:
         if not self.visible:
