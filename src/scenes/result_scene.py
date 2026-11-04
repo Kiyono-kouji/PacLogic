@@ -16,6 +16,8 @@ class ResultScene(BaseScene):
         title, color = OUTCOME_TEXT[sim.status]
         breakdown = score_breakdown(sim, session.seconds_left)
         rows = [*breakdown.items(), ("Total", total_score(breakdown))]
+        self.counters: list = []
+        self.count_seconds = 0.0
         self.ui = [
             Panel(settings.RESULT_PANEL_RECT),
             Label(title, settings.RESULT_TITLE_POSITION, settings.FONT_LARGE, color, "center"),
@@ -36,6 +38,11 @@ class ResultScene(BaseScene):
     def update(self, dt: float):
         self.update_ui(dt)
         self.flash.update(dt)
+        self.count_seconds += dt
+        for index, (label, points) in enumerate(self.counters):
+            started = self.count_seconds - settings.RESULT_COUNT_DELAY - index * settings.RESULT_COUNT_STAGGER
+            linear = min(1.0, max(0.0, started / settings.RESULT_COUNT_SECONDS))
+            label.set_text(str(round(points * (1 - (1 - linear) ** 3))))
 
     def score_labels(self, rows: list) -> list:
         labels = []
@@ -43,7 +50,9 @@ class ResultScene(BaseScene):
             y = settings.RESULT_ROW_TOP + row * settings.RESULT_ROW_HEIGHT
             color = settings.ACCENT_COLOR if row == len(rows) - 1 else settings.TEXT_COLOR
             labels.append(Label(name, (settings.RESULT_NAME_X, y), settings.FONT_MEDIUM, color))
-            labels.append(Label(str(points), (settings.RESULT_VALUE_X, y), settings.FONT_MEDIUM, color, "topright"))
+            value = Label("0", (settings.RESULT_VALUE_X, y), settings.FONT_MEDIUM, color, "topright")
+            self.counters.append((value, points))
+            labels.append(value)
         return labels
 
     def play_again(self):
