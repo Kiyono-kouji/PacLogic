@@ -84,6 +84,7 @@ ROUTE_COLOR = (70, 220, 110)
 
 GHOST_SPRITES = ("red-ghost", "pink-ghost", "cyan-ghost", "orange-ghost")
 SPRITE_PIXELS = 16
+CHARACTER_TILE_FILL = 0.9
 PACMAN_FRAME_COUNT = 3
 GHOST_FRAME_COUNT = 2
 PACMAN_FRAME_MS = 90
